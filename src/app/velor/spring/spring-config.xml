@@ -4,8 +4,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"
 	default-autowire="byType">
 
-	<bean
-		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+	<bean id="sqlDumper" class="app.velor.SqlDumper">
 		<property name="locations">
 			<list>
 				<value>properties/config.properties</value>
@@ -15,7 +14,7 @@
 		</property>
 	</bean>
 
-	<bean class="app.velor.json.JsonDownloader">
+	<bean id="jsonDownloader" class="app.velor.json.JsonDownloader">
 		<property name="jsonurls" value="${veloroute_remote_jsons_url}"></property>
 		<property name="mediaUrl" value="${veloroute_remote_media_url}"></property>
 		<property name="jsons" value="${veloroute_remote_jsons}"></property>
@@ -24,7 +23,10 @@
 	<bean class="app.velor.VelorProcessor">
 		<property name="parser" ref="jsonParser"></property>
 		<property name="routePreprocessor" ref="routePreprocessor"></property>
+		<property name="downloader" ref="jsonDownloader"></property>
+		<property name="sqlDumper" ref="sqlDumper"></property>
 	</bean>
+
 
 	<bean id="dummyContext" class="android.content.Context"></bean>
 
@@ -188,3 +190,5 @@
 		</property>
 	</bean>
 </beans>
+
+

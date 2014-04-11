@@ -130,7 +130,7 @@ public final class SQLiteDatabase {
 		}
 
 		if (orderBy != null) {
-			sql += " ORDER BY " + having;
+			sql += " ORDER BY " + orderBy;
 		}
 
 		return sql;

@@ -22,6 +22,7 @@ public class VelorProcessor {
 	private JsonParser parser;
 	private DatabaseManager databaseManager;
 	private RoutePreprocessor routePreprocessor;
+	private SqlDumper sqlDumper;
 
 	public void setRoutePreprocessor(RoutePreprocessor routePreprocessor) {
 		this.routePreprocessor = routePreprocessor;
@@ -39,6 +40,10 @@ public class VelorProcessor {
 		this.databaseManager = databaseManager;
 	}
 
+	public void setSqlDumper(SqlDumper sqlDumper) {
+		this.sqlDumper = sqlDumper;
+	}
+
 	protected Options buildOptions() {
 		Options options = new Options();
 		options.addOption("nod", false, "bypass the download process");
@@ -48,6 +53,8 @@ public class VelorProcessor {
 				"destination folder for downloaded files");
 		options.addOption("db", true, "database file");
 		options.addOption("bck", false, "backup database before processing");
+		options.addOption("dmpsql", true,
+				"dump all sql statements into the specified folder");
 		options.addOption("help", false, "display this help");
 
 		return options;
@@ -115,6 +122,10 @@ public class VelorProcessor {
 		databaseManager.beginTransaction();
 
 		try {
+			// FIXME use an option handler (map) with the option name as key and
+			// a Preprocessor (the interface) as value. Or pass in the options
+			// to a
+			// Preprocessor chain ?
 			if (!line.hasOption("nod")) {
 				downloader.downloadJSons(destinationFolder);
 			}
@@ -125,6 +136,9 @@ public class VelorProcessor {
 			}
 			if (!line.hasOption("nor")) {
 				routePreprocessor.preprocess();
+			}
+			if (line.hasOption("dmpsql")) {
+				sqlDumper.preprocess(line);
 			}
 			databaseManager.endTransactionSuccessful();
 		} catch (Exception e) {

@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.cli.CommandLine;
+
 import android.content.ContentValues;
 import android.database.Cursor;
 import app.velor.storage.mapper.VOMapper;
@@ -13,12 +15,29 @@ import app.velor.storage.vo.RouteConnection;
 import app.velor.storage.vo.RouteConnectionPoint;
 import app.velor.utils.GeoUtils;
 
-public class RouteInterconnectionBuilder {
+/**
+ * Create a grph of routes represented by RouteConnection between tow
+ * RouteConnectionPoint.
+ * 
+ * @author glenn-eric
+ * 
+ */
+public class RouteInterconnectionBuilder implements Preprocessor {
 	private DatabaseManager databaseManager;
+
+	// insert statements
 	private String[] edgeCreationSqls;
+
+	// the table containing route geo data
 	private String routedataTable;
+	// the table containting the interconntions ie route connection points
+
 	private String edgesTable;
+
+	// the statement for selecting route connection points
 	private String selectEdgesSql;
+
+	// a mapper from cursor to route connection points
 	private VOMapper<RouteConnectionPoint> connMapper;
 
 	public void setDatabaseManager(DatabaseManager databaseManager) {
@@ -48,12 +67,12 @@ public class RouteInterconnectionBuilder {
 		connMapper = fconn.getMapper(RouteConnectionPoint.class);
 	}
 
-	public Cursor queryRoute(long id) {
+	protected Cursor queryRoute(long id) {
 		return databaseManager.query(routedataTable, null, "route_id=?",
 				new String[] { Long.toString(id) }, null, null, "ordinality");
 	}
 
-	public double distance(long srcid, int srcord, long dstid, int dstord) {
+	protected double distance(long srcid, int srcord, long dstid, int dstord) {
 		double distance = 0;
 		if (srcid == dstid) {
 			Cursor route = queryRoute(srcid);
@@ -66,6 +85,9 @@ public class RouteInterconnectionBuilder {
 			while (route.moveToNext()) {
 				data.add(new double[] { route.getDouble(latC),
 						route.getDouble(lonC) });
+				System.out.println("ordinality "
+						+ route.getInt(route.getColumnIndex("ordinality")));
+
 			}
 			int a = Math.min(srcord, dstord);
 			int b = Math.max(srcord, dstord);
@@ -78,24 +100,24 @@ public class RouteInterconnectionBuilder {
 		return distance;
 	}
 
-	public Cursor queryForNodes() {
+	protected Cursor queryForNodes() {
 		return databaseManager.query(true, edgesTable, new String[] {
 				"first_id", "first_ord" }, null, null, null, null, null, null);
 	}
 
-	public Cursor queryForEdges(long id, int ord) {
+	protected Cursor queryForEdges(long id, int ord) {
 		String[] args = { Long.toString(id), Integer.toString(ord) };
 		return databaseManager.rawQuery(selectEdgesSql, args);
 	}
 
-	public List<RouteConnectionPoint> getConnectionPoints() {
+	protected List<RouteConnectionPoint> getConnectionPoints() {
 		Cursor c = queryForNodes();
 		List<RouteConnectionPoint> result = connMapper.toList(c);
 		c.close();
 		return result;
 	}
 
-	public List<RouteConnectionPoint> getConnectionPoints(
+	protected List<RouteConnectionPoint> getConnectionPoints(
 			RouteConnectionPoint node) {
 		Cursor c = queryForEdges(node.getRouteId(), node.getOrdinality());
 		List<RouteConnectionPoint> result = connMapper.toList(c);
@@ -103,7 +125,7 @@ public class RouteInterconnectionBuilder {
 		return result;
 	}
 
-	public void updateEdgeWeight(long idA, int ordA, long idB, int ordB,
+	protected void updateEdgeWeight(long idA, int ordA, long idB, int ordB,
 			double weight) {
 
 		String[] args = new String[4];
@@ -120,7 +142,10 @@ public class RouteInterconnectionBuilder {
 				args);
 	}
 
-	protected void createEdges() {
+	/**
+	 * Create the edges
+	 */
+	public void createEdges() {
 		// insert the edges into the database
 		for (String sql : edgeCreationSqls) {
 			databaseManager.execSQL(sql);
@@ -148,5 +173,10 @@ public class RouteInterconnectionBuilder {
 					conn.dst.getRouteId(), conn.dst.getOrdinality(),
 					conn.distance);
 		}
+	}
+
+	@Override
+	public void preprocess(CommandLine cmd) {
+		createEdges();
 	}
 }

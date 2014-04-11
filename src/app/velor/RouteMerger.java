@@ -7,14 +7,32 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.apache.commons.cli.CommandLine;
+
 import android.database.Cursor;
 
-public class RouteMerger {
+/**
+ * Some routes having same name that should be connected are disconnected.
+ * Reconnect them in the database.
+ */
+public class RouteMerger implements Preprocessor {
 	private DatabaseManager databaseManager;
+
+	// select the routes and the geo points from route data where the geo points
+	// are connected ie very close together and their type id is the same.
 	private String selectIntersectionsSql;
+
+	// the table containing route geo data
 	private String routedataTable;
+
+	// update the route data, setting two connected route with same type ids
+	// with the same route id.
 	private String updateMergedSql;
+
+	// recalculate the length of each merged route.
 	private String updateMergedLengthSql;
+
+	// delete the route definition that have been merged from the routes table
 	private String deleteMergedSql;
 
 	public void setDatabaseManager(DatabaseManager databaseManager) {
@@ -41,11 +59,24 @@ public class RouteMerger {
 		this.deleteMergedSql = deleteMergedSql;
 	}
 
+	/**
+	 * select the routes and the geo points from route data where the geo points
+	 * are connected ie very close together and their type id is the same.
+	 * 
+	 * @return
+	 */
 	private Cursor queryForExploded() {
 		return databaseManager
 				.rawQuery(selectIntersectionsSql, new String[] {});
 	}
 
+	/**
+	 * update the route data, setting two connected route with same type ids
+	 * with the same route id.
+	 * 
+	 * @param fromId
+	 * @param toId
+	 */
 	private void merge(long fromId, long toId) {
 
 		// remove the route_id vertex as it is already defined in the previous
@@ -63,6 +94,9 @@ public class RouteMerger {
 		databaseManager.execSQL(updateMergedLengthSql, args2);
 	}
 
+	/**
+	 * delete the route definition that have been merged from the routes table
+	 */
 	private void finishMerge() {
 		// remove routes not in routedata
 		String[] args3 = {};
@@ -138,6 +172,11 @@ public class RouteMerger {
 			}
 		}
 		finishMerge();
+	}
+
+	@Override
+	public void preprocess(CommandLine cmd) {
+		mergeRoutes();
 	}
 
 }

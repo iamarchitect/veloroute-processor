@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import app.velor.json.JsonMapperFactory;
 import app.velor.json.JsonMapperFactory.JsonMapperHelper;
 
 public abstract class BaseJsonMapperHelper implements JsonMapperHelper {
@@ -15,6 +14,12 @@ public abstract class BaseJsonMapperHelper implements JsonMapperHelper {
 		super();
 	}
 
+	/**
+	 * Get bytes from a url.
+	 * 
+	 * @param urlStr
+	 * @return
+	 */
 	protected byte[] getBytes(String urlStr) {
 		byte data[] = new byte[1024];
 		HttpURLConnection connexion = null;

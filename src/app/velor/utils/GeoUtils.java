@@ -99,4 +99,11 @@ public final class GeoUtils {
 		s = Math.round(s * 1000.0) / 1000.0; // round to 1mm precision
 		return s;
 	}
+
+	public static void main(String args[]) {
+		// FIXME use jUnit
+
+		System.out.println(GeoUtils.distVincenty(48.4368874017347,
+				-72.1102480390715, 48.43685000642982, -72.1102311432993));
+	}
 }

@@ -4,11 +4,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.cli.CommandLine;
+
 import android.content.ContentValues;
 import android.database.Cursor;
 import app.velor.utils.VertexReducer;
 
-public class RouteReducer {
+/**
+ * Reduces the vertex of route polylines for each zoom levels from level 5 to
+ * level 17.
+ * 
+ * @author glenn-eric
+ * 
+ */
+public class RouteReducer implements Preprocessor {
 	private static final int MIN_ZOOM = 5;
 	public static final String DB_MIN_ZOOM = "min_zoom";
 	public static final String DB_MAX_ZOOM = "max_zoom";
@@ -126,5 +135,10 @@ public class RouteReducer {
 		}
 
 		c.close();
+	}
+
+	@Override
+	public void preprocess(CommandLine cmd) {
+		reduceVertices();
 	}
 }
