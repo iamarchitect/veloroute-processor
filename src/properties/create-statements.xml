@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+	<entry key="create_city_sql">
+		CREATE TABLE ${table_cities}
+		(
+			id INTEGER PRIMARY KEY,
+			name TEXT
+		);
+	</entry>
+	<entry key="create_poi_type_category_sql">
+		CREATE TABLE ${table_categories}
+		(
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name_FR TEXT,
+			name_EN TEXT
+		);
+	</entry>	
+    <entry key="create_poi_types_sql">        
+        CREATE TABLE ${table_types} 
+        (
+        	id INTEGER PRIMARY KEY AUTOINCREMENT,
+        	icon CONTENT BLOB,
+        	name_FR TEXT,
+        	name_EN TEXT,
+        	category_id INT,
+        	FOREIGN KEY(category_id) REFERENCES ${table_categories}(id)
+       	);
+	</entry>
+    <entry key="create_pois_sql">        
+        CREATE TABLE ${table_pois} 
+        (   
+        	id INTEGER PRIMARY KEY,
+        	picture CONTENT BLOB,
+        	phone CHARACTER(10),
+        	postal_code CHARACTER(6),
+        	name TEXT,        
+        	website TEXT,
+        	type_id INT,
+        	email TEXT,
+        	latitude FLOAT,
+        	longitude FLOAT,
+        	city_id INT,
+        	street TEXT,
+        	street_no INT,
+        	description_FR TEXT,
+        	description_EN TEXT,
+        	FOREIGN KEY(type_id) REFERENCES ${table_types}(id),
+        	FOREIGN KEY(city_id) REFERENCES ${table_cities}(id)
+        );
+        CREATE INDEX idx_coords_on_pois ON ${table_pois}(type_id,longitude,latitude);
+	</entry>
+	<entry key="create_route_sections_sql">        
+        CREATE TABLE ${table_routesections} 
+        (
+        	id INTEGER PRIMARY KEY,
+        	coating TEXT,
+        	name TEXT,
+        	color INTEGER,
+        	color_name TEXT
+        );
+	</entry>
+    <entry key="create_routes_sql">        
+        CREATE TABLE ${table_routes}
+        (
+        	id INTEGER PRIMARY KEY AUTOINCREMENT,
+        	type_id INTEGER,
+        	route_length FLOAT,
+        	FOREIGN KEY(type_id) REFERENCES ${table_routesections}(id)
+        );
+	</entry>	    
+	<entry key="create_route_data_sql">        
+        CREATE TABLE ${table_routedata}
+        (
+        	route_id INTEGER,        	
+        	ordinality INT,
+        	longitude FLOAT,
+        	latitude FLOAT,
+        	min_zoom INT,
+        	max_zoom INT,
+        	FOREIGN KEY(route_id) REFERENCES ${table_routes}(id)
+        );
+        CREATE INDEX idx_coords_on_routedata ON ${table_routedata} (longitude,latitude,min_zoom,max_zoom);
+        CREATE INDEX idx_idord_on_routedata ON ${table_routedata} (route_id,ordinality);
+        CREATE INDEX idx_idzoom_on_routedata ON ${table_routedata} (route_id,min_zoom,max_zoom);
+	</entry>
+	
+	
+	<entry key="create_edges_sql">
+	    CREATE TABLE ${table_edges}
+		(
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			first_id INTEGER,
+			first_ord INT,
+			second_id INTEGER,
+			second_ord INT,
+			distance FLOAT
+		);
+		CREATE INDEX idx_edges ON  ${table_edges} (first_id,first_ord);		
+		CREATE INDEX idx_edges2 ON  ${table_edges} (first_id,first_ord,second_id,second_ord);
+	</entry>
+	
+    <entry key="create_tiles_sql">        
+        CREATE TABLE ${table_tiles} 
+        (
+        	id TEXT PRIMARY KEY,
+        	data CONTENT BLOB,
+        	hash TEXT,
+        	size INT
+        );
+	</entry>
+</properties>

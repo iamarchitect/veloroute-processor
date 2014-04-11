@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <entry key="create_intersections_sql">
+		CREATE VIEW ${view_intersections} AS 
+		SELECT 
+			A.route_id AS first_id,	
+			A.ordinality AS first_ord,
+			A.type_id as first_type_id,
+			B.route_id AS second_id,
+			B.ordinality AS second_ord,
+			B.type_id as second_type_id
+		FROM 
+			(SELECT
+				${table_routes}.type_id,
+				${table_routedata}.*
+			FROM 
+				${table_routes},
+				${table_routedata} 
+			WHERE
+				${table_routes}.id=${table_routedata}.route_id) A,
+			(SELECT
+				${table_routes}.type_id,
+				${table_routedata}.*
+			FROM 
+				${table_routes},
+				${table_routedata} 
+			WHERE
+				${table_routes}.id=${table_routedata}.route_id) B
+		WHERE
+			A.longitude-${intersection_tolerance} &lt;= B.longitude AND
+			A.longitude+${intersection_tolerance} &gt;= B.longitude AND
+			A.latitude-${intersection_tolerance} &lt;= B.latitude AND
+			A.latitude+${intersection_tolerance} &gt;= B.latitude AND
+			A.route_id!=B.route_id
+		ORDER BY
+			A.route_id,
+			B.route_id;
+    </entry>
+    
+    <entry key="select_connected_with_same_typeid_sql">
+		SELECT 
+			first_id,
+			second_id
+		FROM 
+			${view_intersections}
+		INNER JOIN ( 
+			SELECT 
+				MAX(ordinality) mx, 
+				route_id
+			FROM ${table_routedata}
+			GROUP BY route_id) tmp
+		ON 
+			tmp.route_id=${view_intersections}.first_id AND
+			${view_intersections}.first_ord=tmp.mx AND
+			${view_intersections}.second_ord=0 AND
+			${view_intersections}.first_type_id=${view_intersections}.second_type_id;
+    </entry>
+    
+     <!-- 
+   		delete from the routes the second route that was merged
+    -->
+    <entry key="delete_merged_routes_sql">
+		DELETE
+		FROM ${table_routes} 
+		WHERE id NOT IN (
+			SELECT DISTINCT route_id 
+			FROM ${table_routedata});
+    </entry>
+    
+   <!-- 
+   		update the length of the merged route adding the length 
+   		of the second merged route 
+   -->
+    <entry key="update_routes_increment_length_sql">
+		UPDATE ${table_routes}
+		SET route_length=route_length+
+				(SELECT route_length
+				FROM ${table_routes}
+				WHERE id=?)
+		WHERE id=?;
+    </entry>    
+    
+ 	<!-- 
+    	merge routes, adding the ordinality from the previous 
+    	route and setting the new route_id to the previous route_id
+    -->
+    <entry key="update_merged_route_data_sql">
+		UPDATE ${table_routedata}
+		SET 
+			route_id=?,
+			ordinality=ordinality+
+				(SELECT MAX(ordinality)
+				FROM ${table_routedata}
+				WHERE route_id=?)
+		WHERE 
+			route_id=?;
+    </entry>   
+    
+    
+	<entry key="select_edges_sql">
+        SELECT 
+        	second_id as first_id,
+        	second_ord as first_ord
+        FROM ${table_edges}
+        WHERE
+        	first_id=? AND
+        	first_ord=?;
+    </entry>  
+    
+    
+   <!-- 
+    	create the edges of the route graph. Edges connectes the vertices (the nodes) of the
+    	routes where there are connection points with other routes and where the
+    	routes starts and ends.
+    	
+    	Each union bloc in the first insert statment represents the following
+    	
+    	A:
+    	The not connected routes. Create edge
+		from first vertex to last vertex.
+		
+		B:
+		The already connected routes.
+		Create sequential edges from first to 
+		second to third, etc until last. 
+		
+		C:
+		Unconnected ends with other connected.
+		
+		D:
+		Unconnected starts with other connected
+     -->
+	<entry key="insert_edges_sql">
+	    <!-- Insert all edges from start to end of route -->
+	   INSERT INTO ${table_edges}
+			(
+				first_id,
+				first_ord,
+				second_id,
+				second_ord
+			)
+			
+
+			SELECT 
+				A.route_id AS first_id,
+				A.ordinality AS fisrt_ord,
+				B.route_id AS second_id,
+				B.ordinality As second_ord
+			FROM 
+				${table_routedata} A,
+				(SELECT 
+					max(ordinality) ordinality,
+					route_id
+				FROM ${table_routedata}
+				GROUP BY route_id) B
+			WHERE
+				A.route_id=B.route_id AND
+				A.ordinality=0 AND
+				A.route_id NOT IN (
+					SELECT first_id FROM ${view_intersections})
+					
+			UNION
+			
+			
+			SELECT 
+				first_id,
+				first_ord,
+				second_id,
+				MIN(second_ord) AS second_ord
+			FROM 
+				(
+				SELECT DISTINCT
+					A.first_id AS first_id,
+					A.first_ord AS first_ord,
+					B.first_id AS second_id,
+					B.first_ord AS second_ord
+				FROM
+					${view_intersections} A,
+					${view_intersections} B
+				WHERE
+					A.first_id=B.first_id AND
+					A.first_ord&lt;B.first_ord
+				ORDER BY A.first_id, A.first_ord
+				)
+			GROUP BY 
+				first_id,
+				first_ord,
+				second_id
+				
+			UNION
+				
+			
+			SELECT 
+				first_id,
+				MAX(first_ord) AS first_ord,
+				second_id,
+				second_ord
+			FROM 
+				(
+				SELECT DISTINCT
+					A.first_id AS first_id,
+					A.first_ord AS first_ord,
+					B.route_id AS second_id,
+					B.ordinality AS second_ord
+				FROM
+					${view_intersections} A,
+					(SELECT MAX(ordinality) ordinality, route_id 
+					FROM ${table_routedata}
+					GROUP BY route_id) B
+				WHERE
+					A.first_id=B.route_id AND
+					A.first_ord&lt;B.ordinality
+				ORDER BY A.first_id, A.first_ord
+				)
+			GROUP BY 
+				first_id,
+				second_id,
+				second_ord
+				
+			UNION
+			
+			SELECT 
+				first_id,
+				first_ord,
+				second_id,
+				MIN(second_ord)
+			FROM 
+				(
+				SELECT DISTINCT
+					B.route_id AS first_id,
+					B.ordinality AS first_ord,
+					A.first_id AS second_id,
+					A.first_ord AS second_ord
+				FROM
+					${view_intersections} A,
+					${table_routedata} B
+				WHERE
+					A.first_id=B.route_id AND
+					A.first_ord&gt;0 AND
+					B.ordinality=0
+				ORDER BY A.first_id, A.first_ord
+				)
+			GROUP BY 
+				first_id,
+				first_ord,
+				second_id;
+	</entry>
+	   
+	   
+   <!-- Then reverse the order of the edges -->
+   <entry key="insert_reversed_edges_sql">
+       	INSERT INTO ${table_edges}
+	 	(
+			first_id,
+			first_ord,
+			second_id,
+			second_ord
+		)
+		
+		SELECT 
+			second_id,
+			second_ord,
+			first_id,
+			first_ord
+		FROM ${table_edges};
+   </entry>
+	   
+   <!-- Finally, insert the edges from one route to another 
+   	connected route -->
+   <entry key="insert_inetersections_sql">
+		INSERT INTO ${table_edges} 
+		(
+			first_id,
+			first_ord,
+			second_id,
+			second_ord
+		)
+			
+		SELECT 
+			first_id,
+			first_ord,
+			second_id,
+			second_ord
+		FROM
+			${view_intersections} GV
+		WHERE NOT EXISTS
+			(
+			SELECT 
+				first_id,
+				first_ord,
+				second_id,
+				second_ord
+			FROM ${table_edges} E
+			WHERE
+				GV.first_id=E.first_id AND
+				GV.first_ord=E.first_ord AND
+				GV.second_id=E.second_id AND
+				GV.second_ord=E.second_ord
+			);	       
+   </entry>
+           
+</properties>

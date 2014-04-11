@@ -1,0 +1,13 @@
+# specify the database column and then the json name
+# json-name	= db-column
+# you dont have to specify the names that are same on
+# both sides ex phone=phone
+# to ignore a json field set it to ?IGNORED
+# --------------------------------------------------
+city=city_id
+no_street=street_no
+icon=type_id
+photo=picture
+kml_layer=?IGNORED
+position_tuple=?IGNORED
+photo_url=?IGNORED
