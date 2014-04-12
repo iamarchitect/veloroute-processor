@@ -54,7 +54,8 @@
 			tmp.route_id=${view_intersections}.first_id AND
 			${view_intersections}.first_ord=tmp.mx AND
 			${view_intersections}.second_ord=0 AND
-			${view_intersections}.first_type_id=${view_intersections}.second_type_id;
+			${view_intersections}.first_type_id=${view_intersections}.second_type_id AND
+			${view_intersections}.first_type_id>=0;
     </entry>
     
      <!-- 

@@ -19,11 +19,24 @@ public class GeoJson2VelorJson extends AbstractJsonParser {
 	private Gson outgson;
 	private List<Street> streets;
 
+	public static class VelorPath {
+		public Street[] data;
+		public Schema schema;
+	}
+
+	public static class Schema {
+		public String city = "INTEGER";
+		public String id = "INTGER";
+		public String kml_layer = "TEXT";
+		public String lines = "MULTILINE";
+		public String reoute_section = "INTEGER";
+	}
+
 	public static class Street {
 		static long ids = 0;
 		public long id = ids++;
 		public long city = -1;
-		public long router_section = -2;
+		public long route_section = -2;
 		public String kml_layer = "highway";
 		public String name;
 		public double[][][] lines;
@@ -77,7 +90,10 @@ public class GeoJson2VelorJson extends AbstractJsonParser {
 
 	@Override
 	protected void markAsSuccess() {
-		String s = gson.toJson(streets);
+		VelorPath outvo = new VelorPath();
+		outvo.data = streets.toArray(new Street[] {});
+		outvo.schema = new Schema();
+		String s = gson.toJson(outvo);
 
 		try {
 			FileOutputStream outputStream = new FileOutputStream(output);
@@ -141,7 +157,7 @@ public class GeoJson2VelorJson extends AbstractJsonParser {
 					reader.beginArray();
 					double lng = reader.nextDouble();
 					double lat = reader.nextDouble();
-					coordinates.add(new double[] { lat, lng });
+					coordinates.add(new double[] { lng, lat });
 					reader.endArray();
 
 					System.out.println("lat:" + lat + " lng:" + lng);

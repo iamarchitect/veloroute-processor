@@ -85,9 +85,6 @@ public class RouteInterconnectionBuilder implements Preprocessor {
 			while (route.moveToNext()) {
 				data.add(new double[] { route.getDouble(latC),
 						route.getDouble(lonC) });
-				System.out.println("ordinality "
-						+ route.getInt(route.getColumnIndex("ordinality")));
-
 			}
 			int a = Math.min(srcord, dstord);
 			int b = Math.max(srcord, dstord);

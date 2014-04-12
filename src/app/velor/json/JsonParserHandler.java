@@ -12,16 +12,22 @@ public class JsonParserHandler implements JsonParser {
 
 	@Override
 	public boolean parseJSON(File f) throws Exception {
-		int pos = f != null ? f.getName().lastIndexOf('.') : -1;
+		// int pos = f != null ? f.getName().lastIndexOf('.') : -1;
 
-		if (pos > 0) {
-			String filename = f.getName().substring(0, pos);
+		String[] tokens = f != null ? f.getName().split("\\.")
+				: new String[] {};
 
+		// if (pos > 0) {
+		// String filename = f.getName().substring(0, pos);
+
+		if (tokens.length >= 2 && "json".equals(tokens[tokens.length - 1])) {
+			String filename = tokens[tokens.length - 2];
 			JsonParser parser = parsers.get(filename);
 			if (parser != null) {
 				return parser.parseJSON(f);
 			}
 		}
+		// }
 		return false;
 	}
 }
