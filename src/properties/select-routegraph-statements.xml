@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+   <entry key="select_edges_sql">
+        SELECT 
+        	second_id as first_id,
+        	second_ord as first_ord
+        FROM ${table_edges}
+        WHERE
+        	first_id=? AND
+        	first_ord=?;
+   </entry>
+   
+    <!-- 
+    	Select the nodes nearest to this virtual node.
+    	The node must not exist in the edges table. 
+    -->
+    <entry key="select_nearest_edges_sql">
+        SELECT * FROM(
+			SELECT 
+				first_id,
+				MIN(first_ord) AS first_ord
+			FROM ${table_edges}
+			WHERE
+				first_id=?1 AND
+				second_id=?1 AND
+				first_ord&gt;?2
+		) WHERE first_ord NOT NULL
+			
+		UNION
+		
+		SELECT * FROM(
+			SELECT 
+				first_id,
+				MAX(first_ord) AS first_ord
+			FROM ${table_edges}
+			WHERE
+				first_id=?1 AND
+				second_id=?1 AND
+				first_ord&lt;?2
+		) WHERE first_ord NOT NULL;
+    </entry>
+    
+    
+    <!-- graph analysis requests -->
+	<entry key="select_connection_length_sql">
+	    SELECT distance
+	    FROM ${table_edges}
+	    WHERE
+	    	first_id=? AND
+	    	first_ord=? AND
+	    	second_id=? AND
+	    	second_ord=?;
+	</entry>    
+	
+	<entry key="select_all_nodes_sql">
+		SELECT DISTINCT first_id,first_ord
+		FROM ${table_edges};
+	</entry>
+</properties>

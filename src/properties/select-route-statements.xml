@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+	<entry key="route_projection">
+       	${table_routedata}.route_id AS id, 
+		${table_routedata}.latitude AS latitude, 
+		${table_routedata}.longitude AS longitude,
+		${table_routes}.type_id AS type_id,
+		${table_routes}.route_length AS route_length,
+		${table_routesections}.name AS type,
+		${table_routedata}.min_zoom AS min_zoom,
+		${table_routedata}.max_zoom AS max_zoom,
+		${table_routesections}.color AS color
+	</entry>
+	
+	<entry key="route_tables">
+		${table_routedata},
+		${table_routes},
+		${table_routesections}	
+	</entry>
+
+	<entry key="route_ordering">			
+		${table_routedata}.route_id,
+		${table_routedata}.ordinality;
+	</entry>
+	
+	<entry key="route_relations">
+		${table_routedata}.route_id=${table_routes}.id AND
+		${table_routesections}.id=${table_routes}.type_id
+	</entry>
+	
+	<!-- 
+		Select all routes with relations resolved. ?WHERE-CLAUSE-ADDED-HERE should be
+		replace with any an empty string or any predicate needed 
+	-->
+    <entry key="select_all_routes_sql">
+        SELECT ${route_projection}
+        FROM ${route_tables}
+		WHERE ${route_relations}
+		ORDER BY ${route_ordering}
+    </entry>
+    
+    <entry key="select_route_coord_sql">
+		SELECT latitude, longitude
+		FROM ${table_routedata} 
+		WHERE 
+			route_id=?1 AND 
+			ordinality=case 
+				when CAST (?2 AS INTEGER) &lt; 0 THEN 
+				(
+				select MAX(ordinality)+CAST(?2 AS INTEGER)+1
+				FROM ${table_routedata}
+				WHERE 
+					${table_routedata}.min_zoom &lt; ?3 AND
+					${table_routedata}.max_zoom &gt; ?3 AND
+					${table_routedata}.route_id=?1
+				)
+				else
+					?2
+				end;
+    </entry>
+    
+    <entry key="select_route_data_by_bounds_sql">
+		SELECT
+			DISTINCT route_id
+		FROM
+			${table_routedata}
+		WHERE
+			latitude &gt;= CAST(?1 AS REAL) AND
+			latitude &lt;= CAST(?2 AS REAL) AND
+			longitude &gt;= CAST(?3 AS REAL) AND
+			longitude &lt;= CAST(?4 AS REAL)    
+    </entry>
+    
+    <entry key="select_route_by_bounds_sql">
+ 		SELECT ${route_projection}
+        FROM ${route_tables}
+		WHERE ${route_relations} AND
+			${table_routedata}.route_id IN (${select_route_data_by_bounds_sql})
+		ORDER BY ${route_ordering};
+    </entry>
+    
+    <entry key="select_route_ids_sql">
+    	SELECT id
+    	FROM ${table_routes};
+    </entry>
+</properties>

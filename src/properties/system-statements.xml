@@ -4,9 +4,10 @@
 	<entry key="create_internal_sql">
 		CREATE TABLE ${table_system}
 		(
-			id INTEGER PRIMARY KEY,
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			name TEXT,
 			value TEXT
 		);
 	</entry>
+	
 </properties>

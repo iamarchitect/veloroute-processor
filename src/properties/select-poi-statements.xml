@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+ 	<entry key="select_all_pois_sql">
+        SELECT
+        	${table_pois}.id as id,
+        	${table_pois}.latitude as latitude,
+        	${table_pois}.longitude as longitude,
+        	${table_pois}.type_id as type_id  	
+        FROM 
+        	${table_pois};
+    </entry>
+    
+    <entry key="select_pois_by_type_sql">
+        SELECT
+        	${table_pois}.id as id,
+        	${table_pois}.name as name,
+        	${table_pois}.latitude as latitude,
+        	${table_pois}.longitude as longitude,
+        	${table_pois}.type_id as type_id	  	
+        FROM 
+        	${table_pois}
+		WHERE
+			${table_pois}.type_id in (?);
+    </entry>
+         
+    <entry key="select_poi_by_id">
+        SELECT
+        	${table_pois}.id as id,
+        	${table_pois}.picture as picture,
+        	${table_pois}.phone as phone,
+        	${table_pois}.postal_code as postal_code,
+        	${table_pois}.name as name,        
+        	${table_pois}.website as website,
+        	${table_pois}.type_id as type_id,
+        	${table_pois}.email as email,
+        	${table_pois}.latitude as latitude,
+        	${table_pois}.longitude as longitude,
+        	${table_pois}.city_id as city_id,
+        	${table_pois}.street as street,
+        	${table_pois}.street_no as street_no, 
+        	${table_pois}.description_#{lang} as description,
+        	${table_cities}.name as city
+        FROM 
+        	${table_pois}
+		LEFT OUTER JOIN
+			${table_cities} ON
+			${table_cities}.id=${table_pois}.city_id
+        WHERE
+			${table_pois}.id=?;
+    </entry>
+    
+    <entry key="select_nearest_pois_by_type_sql">
+        SELECT
+        	${table_pois}.id as id,
+        	${table_pois}.name as name,
+        	${table_pois}.latitude as latitude,
+        	${table_pois}.longitude as longitude,
+        	${table_pois}.type_id as type_id
+        FROM 
+        	${table_pois}
+        WHERE
+        	${table_pois}.type_id IN (#{types})
+        ORDER BY
+			abs(latitude - (#{lat})) + abs(longitude - (#{long}))
+		LIMIT #{max};
+    </entry>   
+  
+    <entry key="select_nearest_pois_sql">
+        SELECT
+        	${table_pois}.id as id,
+        	${table_pois}.name as name,
+        	${table_pois}.latitude as latitude,
+        	${table_pois}.longitude as longitude,
+        	${table_pois}.type_id as type_id
+        FROM 
+        	${table_pois}
+        ORDER BY
+			abs(latitude - (#{lat})) + abs(longitude - (#{long}))
+		LIMIT #{max};
+    </entry>
+         
+    <entry key="select_pois_by_proximity_sql">
+        SELECT
+        	${table_pois}.id as id,
+        	${table_pois}.name as name,
+        	${table_pois}.latitude as latitude,
+        	${table_pois}.longitude as longitude,
+        	${table_pois}.type_id as type_id
+        FROM 
+        	${table_pois}
+        WHERE
+			(abs(latitude - (#{lat})) + abs(longitude - (#{long}))) &lt;= (#{dist});
+    </entry>
+    
+    
+    <entry key="select_pois_by_bounds_and_id_sql">
+        SELECT
+        	${table_pois}.id as id,
+        	${table_pois}.name as name,
+        	${table_pois}.latitude as latitude,
+        	${table_pois}.longitude as longitude,
+        	${table_pois}.type_id as type_id
+        FROM 
+        	${table_pois}
+        WHERE
+        	${table_pois}.type_id IN (#{ids}) AND
+			${table_pois}.latitude &gt;= CAST(? AS REAL) AND
+			${table_pois}.latitude &lt;= CAST(? AS REAL) AND
+			${table_pois}.longitude &gt;= CAST(? AS REAL) AND
+			${table_pois}.longitude &lt;= CAST(? AS REAL);
+    </entry>
+    
+    <entry key="select_pois_by_bounds_sql">
+        SELECT
+        	${table_pois}.id as id,
+        	${table_pois}.name as name,
+        	${table_pois}.latitude as latitude,
+        	${table_pois}.longitude as longitude,
+        	${table_pois}.type_id as type_id
+        FROM 
+        	${table_pois}
+        WHERE
+			${table_pois}.latitude &gt;= CAST(? AS REAL) AND
+			${table_pois}.latitude &lt;= CAST(? AS REAL) AND
+			${table_pois}.longitude &gt;= CAST(? AS REAL) AND
+			${table_pois}.longitude &lt;= CAST(? AS REAL);
+    </entry>
+    
+    <!-- =========== Point of interests types =========== -->
+    <entry key="select_all_poitypes_sql">
+        SELECT 	
+        	${table_types}.id as id, 
+       		${table_types}.icon as icon,
+       		${table_types}.name_#{lang} as name,
+       		${table_categories}.name_#{lang} as category,
+       		${table_categories}.id as category_id
+       	FROM 
+       		${table_types}
+       	INNER JOIN ${table_categories} ON
+       		${table_types}.category_id=${table_categories}.id;
+    </entry>
+    
+    <entry key="select_poitype_by_id_sql">
+        SELECT 	
+        	${table_types}.id as id, 
+       		${table_types}.icon as icon,
+       		${table_types}.name_#{lang} as name,
+       		${table_categories}.name_#{lang} as category,
+       		${table_categories}.id as category_id
+       	FROM 
+       		${table_types}
+       	INNER JOIN ${table_categories} ON
+       		${table_types}.category_id=${table_categories}.id
+       	WHERE
+       		${table_types}.id = ?;
+    </entry>
+    
+   <!-- =========== Point of interests categories=========== -->
+    <entry key="select_all_poitypecats_sql">
+		SELECT
+			id,
+			name_#{lang} as name
+		FROM ${table_categories};
+    </entry>    
+    
+</properties>

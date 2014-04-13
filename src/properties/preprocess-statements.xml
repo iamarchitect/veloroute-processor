@@ -269,7 +269,7 @@
 	   
    <!-- Finally, insert the edges from one route to another 
    	connected route -->
-   <entry key="insert_inetersections_sql">
+   <entry key="insert_intersections_sql">
 		INSERT INTO ${table_edges} 
 		(
 			first_id,

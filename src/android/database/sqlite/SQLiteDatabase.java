@@ -12,8 +12,9 @@ import java.util.Map.Entry;
 
 import org.springframework.util.StringUtils;
 
+import com.velor.storage.database.Cursor;
+
 import android.content.ContentValues;
-import android.database.Cursor;
 
 public final class SQLiteDatabase {
 
