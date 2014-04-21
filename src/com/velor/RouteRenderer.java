@@ -5,6 +5,8 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -159,6 +161,20 @@ public class RouteRenderer extends AbstractPreprocessor {
 		}
 	}
 
+	public class CompositeStroke implements Stroke {
+		private Stroke stroke1, stroke2;
+
+		public CompositeStroke(Stroke stroke1, Stroke stroke2) {
+			this.stroke1 = stroke1;
+			this.stroke2 = stroke2;
+		}
+
+		public Shape createStrokedShape(Shape shape) {
+			return stroke2
+					.createStrokedShape(stroke1.createStrokedShape(shape));
+		}
+	}
+
 	protected void render(Route route, int zoom, PR pr) {
 		int n = route.size();
 		List<Point> xy = new ArrayList<>();
@@ -217,8 +233,6 @@ public class RouteRenderer extends AbstractPreprocessor {
 				g.setComposite(AlphaComposite.getInstance(
 						AlphaComposite.SRC_ATOP, routeAlpha));
 
-				Color c = new Color(route.getType().getColor());
-				g.setPaint(c);
 				g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 						RenderingHints.VALUE_ANTIALIAS_ON);
 				g.setRenderingHint(RenderingHints.KEY_RENDERING,
@@ -227,10 +241,13 @@ public class RouteRenderer extends AbstractPreprocessor {
 						RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
 				g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING,
 						RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+				g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS,
+						RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 
+				Color c = new Color(route.getType().getColor());
+				g.setPaint(c);
 				g.setStroke(new BasicStroke(routeWidth, BasicStroke.CAP_ROUND,
-						BasicStroke.JOIN_ROUND));
-
+						BasicStroke.JOIN_BEVEL));
 				g.drawPolyline(xPoints, yPoints, n);
 
 				ByteArrayOutputStream bos = new ByteArrayOutputStream();

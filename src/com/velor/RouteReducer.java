@@ -60,7 +60,7 @@ public class RouteReducer extends AbstractPreprocessor {
 		double tolerance = 360 / (256 * sqZ * sqZ);
 
 		if (zoom <= 8) {
-			tolerance *= 40;
+			tolerance *= 200;
 		} else if (zoom <= 9) {
 			tolerance *= 20;
 		} else if (zoom <= 10) {
