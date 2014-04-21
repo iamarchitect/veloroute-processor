@@ -21,7 +21,7 @@
 
 	<entry key="route_ordering">			
 		${table_routedata}.route_id,
-		${table_routedata}.ordinality;
+		${table_routedata}.ordinality
 	</entry>
 	
 	<entry key="route_relations">
@@ -69,7 +69,7 @@
 			latitude &gt;= CAST(?1 AS REAL) AND
 			latitude &lt;= CAST(?2 AS REAL) AND
 			longitude &gt;= CAST(?3 AS REAL) AND
-			longitude &lt;= CAST(?4 AS REAL)    
+			longitude &lt;= CAST(?4 AS REAL)  
     </entry>
     
     <entry key="select_route_by_bounds_sql">
@@ -77,6 +77,13 @@
         FROM ${route_tables}
 		WHERE ${route_relations} AND
 			${table_routedata}.route_id IN (${select_route_data_by_bounds_sql})
+		ORDER BY ${route_ordering};
+    </entry>
+    
+    <entry key="select_route_by_id_sql">
+        SELECT ${route_projection}
+        FROM ${route_tables}
+		WHERE ${route_relations} AND ${table_routes}.id=?
 		ORDER BY ${route_ordering};
     </entry>
     

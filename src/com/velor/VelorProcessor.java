@@ -3,7 +3,6 @@ package com.velor;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
-import java.util.Arrays;
 import java.util.Date;
 
 import org.apache.commons.cli.BasicParser;
@@ -15,13 +14,15 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
 
 import com.velor.json.JsonDownloader;
-import com.velor.json.JsonParser;
 
 public class VelorProcessor {
 	private JsonDownloader downloader;
-	private JsonParser parser;
+	private Json2DatabaseProcessor jsonProcessor;
 	private DatabaseManager databaseManager;
 	private RoutePreprocessor routePreprocessor;
+	private RouteRenderer routeRenderer;
+	private String databaseName;
+
 	private SqlDumperPropertyPlaceholderHelper sqlDumper;
 
 	public void setRoutePreprocessor(RoutePreprocessor routePreprocessor) {
@@ -32,8 +33,8 @@ public class VelorProcessor {
 		this.downloader = downloader;
 	}
 
-	public void setParser(JsonParser parser) {
-		this.parser = parser;
+	public void setJsonProcessor(Json2DatabaseProcessor jsonProcessor) {
+		this.jsonProcessor = jsonProcessor;
 	}
 
 	public void setDatabaseManager(DatabaseManager databaseManager) {
@@ -44,19 +45,23 @@ public class VelorProcessor {
 		this.sqlDumper = sqlDumper;
 	}
 
+	public void setRouteRenderer(RouteRenderer routeRenderer) {
+		this.routeRenderer = routeRenderer;
+	}
+
+	public void setDatabaseName(String databaseName) {
+		this.databaseName = databaseName;
+	}
+
 	protected Options buildOptions() {
+		//@formatter:off
 		Options options = new Options();
 		options.addOption("nod", false, "bypass the download process");
 		options.addOption("noi", false, "bypass the import process");
 		options.addOption("nor", false, "bypass the route process");
-		options.addOption("dst", true,
-				"destination folder for downloaded files");
-		options.addOption("db", true, "database file");
-		options.addOption("bck", false, "backup database before processing");
-		options.addOption("dmpsql", true,
-				"dump all sql statements into the specified folder");
+		options.addOption("dmpsql", true,"dump all sql statements into the specified folder");
 		options.addOption("help", false, "display this help");
-
+		//@formatter:on
 		return options;
 	}
 
@@ -111,34 +116,31 @@ public class VelorProcessor {
 		System.out.println("Processing started at "
 				+ DateFormat.getInstance().format(d));
 
-		String destinationFolder = line.getOptionValue("dst");
-		String databaseName = line.getOptionValue("db");
-
-		if (line.hasOption("bck")) {
-			backup(databaseName);
-		}
-
 		databaseManager.open(databaseName);
 		databaseManager.beginTransaction();
 
 		try {
 			// FIXME use an option handler (map) with the option name as key and
 			// a Preprocessor (the interface) as value. Or pass in the options
-			// to a
-			// Preprocessor chain ?
+			// to a Preprocessor chain ?
 			if (!line.hasOption("nod")) {
-				downloader.downloadJSons(destinationFolder);
+				downloader.preprocess();
 			}
+
 			if (!line.hasOption("noi")) {
 				databaseManager.dropTables();
 				databaseManager.createTables();
-				importJsons(destinationFolder, databaseName);
+				jsonProcessor.preprocess();
 			}
 			if (!line.hasOption("nor")) {
 				routePreprocessor.preprocess();
 			}
+			if (!line.hasOption("not")) {
+				routeRenderer.preprocess();
+			}
+
 			if (line.hasOption("dmpsql")) {
-				sqlDumper.preprocess(line);
+				sqlDumper.preprocess();
 			}
 			databaseManager.endTransactionSuccessful();
 		} catch (Exception e) {
@@ -150,25 +152,6 @@ public class VelorProcessor {
 			System.out.println("Processing finished in "
 					+ (new Date().getTime() - start) + " milliseconds");
 		}
-	}
-
-	protected void importJsons(String destinationFolder, String databaseName)
-			throws Exception {
-
-		File[] params = new File(destinationFolder).listFiles();
-
-		params = Arrays.copyOf(params, params.length + 1);
-		// params[params.length - 1] = new File(new URI(
-		// "file:///android_asset/slsj-streets.json"));
-
-		for (File file : params) {
-			if (parser.parseJSON(file)) {
-				System.out.println("inserted succesfully " + file);
-			} else {
-				System.out.println("skipped " + file);
-			}
-		}
-
 	}
 
 }

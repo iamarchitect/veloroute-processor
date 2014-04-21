@@ -12,11 +12,13 @@ import java.util.Map.Entry;
 
 import org.springframework.util.StringUtils;
 
-import com.velor.storage.database.Cursor;
-
 import android.content.ContentValues;
 
-public final class SQLiteDatabase {
+import com.velor.storage.database.Cursor;
+import com.velor.storage.database.CursorImpl;
+import com.velor.storage.database.Database;
+
+public final class SQLiteDatabase implements Database {
 
 	public static final int CONFLICT_REPLACE = 0;
 
@@ -166,7 +168,7 @@ public final class SQLiteDatabase {
 				}
 			}
 
-			c = new Cursor(stmt.executeQuery());
+			c = new CursorImpl(stmt.executeQuery());
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}

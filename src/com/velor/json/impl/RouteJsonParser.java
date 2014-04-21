@@ -3,11 +3,11 @@ package com.velor.json.impl;
 import java.util.List;
 import java.util.Map;
 
+import android.content.ContentValues;
+
 import com.velor.DatabaseManager;
 import com.velor.algorithms.geodata.GeoUtils;
 import com.velor.json.DefaultJsonParser;
-
-import android.content.ContentValues;
 
 public class RouteJsonParser extends DefaultJsonParser {
 

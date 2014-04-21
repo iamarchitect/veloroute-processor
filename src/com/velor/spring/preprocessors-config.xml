@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="json2databaseProcessor" class="com.velor.Json2DatabaseProcessor">
+		<property name="databaseName" value="${database}"></property>
+		<property name="destinationFolder" value="${cache}"></property>
+		<property name="parser" ref="jsonParser"></property>
+	</bean>
+
+	<bean id="routeRenderer" class="com.velor.RouteRenderer">
+		<property name="projection" ref="projection"></property>
+		<property name="routeProvider">
+			<bean class="com.velor.map.provider.route.RouteProviderCache">
+				<constructor-arg index="0" ref="routeProvider"></constructor-arg>
+				<constructor-arg index="1">
+					<null />
+				</constructor-arg>
+			</bean>
+		</property>
+		<property name="tileProvider" ref="tileProvider"></property>
+		<property name="tileStorate" ref="fileTileProvider"></property>
+		<property name="routeAlpha" value="${veloroute_route_alpha}"></property>
+		<property name="routeWidth" value="${veloroute_route_width}"></property>
+		<property name="tilePixels" value="${veloroute_tile_width}"></property>
+		<property name="maxzoom" value="${veloroute_maxzoom}"></property>
+		<property name="minzoom" value="${veloroute_minzoom}"></property>
+		<property name="destination" value="${tiles}"></property>
+	</bean>
+
+	<bean id="routePreprocessor" class="com.velor.RoutePreprocessor">
+		<property name="sqlDumper" ref="sqlDumper"></property>
+		<property name="databaseManager" ref="databaseManager"></property>
+
+		<property name="routeMerger">
+			<bean class="com.velor.RouteMerger">
+				<property name="databaseManager" ref="databaseManager"></property>
+				<property name="deleteMergedSql" value="${delete_merged_routes_sql}"></property>
+				<property name="routedataTable" value="${table_routedata}"></property>
+				<property name="selectIntersectionsSql" value="${select_connected_with_same_typeid_sql}"></property>
+				<property name="updateMergedLengthSql" value="${update_routes_increment_length_sql}"></property>
+				<property name="updateMergedSql" value="${update_merged_route_data_sql}"></property>
+			</bean>
+		</property>
+
+		<property name="routeReducer">
+			<bean class="com.velor.RouteReducer">
+				<property name="databaseManager" ref="databaseManager"></property>
+				<property name="routedataTable" value="${table_routedata}"></property>
+				<property name="routesTable" value="${table_routes}"></property>
+			</bean>
+		</property>
+
+		<property name="routeInterconnectionBuilder">
+			<bean class="com.velor.RouteInterconnectionBuilder">
+				<property name="databaseManager" ref="databaseManager"></property>
+				<property name="edgeCreationSqls">
+					<array>
+						<value>${insert_edges_sql}</value>
+						<value>${insert_reversed_edges_sql}</value>
+						<value>${insert_intersections_sql}</value>
+					</array>
+				</property>
+				<property name="edgesTable" value="${table_edges}"></property>
+				<property name="routedataTable" value="${table_routedata}"></property>
+				<property name="selectEdgesSql" value="${select_edges_sql}"></property>
+			</bean>
+		</property>
+
+		<property name="systemTable" value="${table_system}"></property>
+	</bean>
+
+	<bean id="jsonDownloader" class="com.velor.json.JsonDownloader">
+		<property name="jsonurls" value="${veloroute_remote_jsons_url}"></property>
+		<property name="mediaUrl" value="${veloroute_remote_media_url}"></property>
+		<property name="jsons" value="${veloroute_remote_jsons}"></property>
+		<property name="destinationFolder" value="${cache}"></property>
+	</bean>
+</beans>

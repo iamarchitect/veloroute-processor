@@ -24,7 +24,7 @@
 			${table_pois}.type_id in (?);
     </entry>
          
-    <entry key="select_poi_by_id">
+    <entry key="select_poi_by_id_sql">
         SELECT
         	${table_pois}.id as id,
         	${table_pois}.picture as picture,

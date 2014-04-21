@@ -4,6 +4,10 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"
 	default-autowire="byType">
 
+	<import resource="preprocessors-config.xml" />
+	<import resource="providers-config.xml" />
+	<import resource="mappers-config.xml" />
+
 	<bean id="sqlDumper" class="com.velor.SqlDumperPropertyPlaceholderHelper">
 		<property name="locations">
 			<list>
@@ -16,71 +20,24 @@
 				<value>properties/system-statements.xml</value>
 			</list>
 		</property>
+		<property name="ignoreUnresolvablePlaceholders" value="false"></property>
+		<property name="dmpsqlDir" value="${dmp_sql_dir}"></property>
 	</bean>
 
-	<bean id="jsonDownloader" class="com.velor.json.JsonDownloader">
-		<property name="jsonurls" value="${veloroute_remote_jsons_url}"></property>
-		<property name="mediaUrl" value="${veloroute_remote_media_url}"></property>
-		<property name="jsons" value="${veloroute_remote_jsons}"></property>
-	</bean>
 
 	<bean class="com.velor.VelorProcessor">
-		<property name="parser" ref="jsonParser"></property>
+		<property name="jsonProcessor" ref="json2databaseProcessor"></property>
 		<property name="routePreprocessor" ref="routePreprocessor"></property>
 		<property name="downloader" ref="jsonDownloader"></property>
 		<property name="sqlDumper" ref="sqlDumper"></property>
+		<property name="routeRenderer" ref="routeRenderer"></property>
+		<property name="databaseName" value="${database}"></property>
 	</bean>
 
-
+	<bean id="projection" class="com.velor.algorithms.geodata.SphericalMercator"></bean>
 	<bean id="dummyContext" class="android.content.Context"></bean>
+	<bean id="database" class="android.database.sqlite.SQLiteDatabase"></bean>
 
-	<bean id="jsonParserBase" class="com.velor.json.DefaultJsonParser"
-		abstract="true">
-		<constructor-arg index="0" ref="databaseManager"></constructor-arg>
-	</bean>
-
-	<bean id="database" class="android.database.sqlite.SQLiteDatabase">
-	</bean>
-
-
-	<bean id="routePreprocessor" class="com.velor.RoutePreprocessor">
-		<property name="routeMerger">
-			<bean class="com.velor.RouteMerger">
-				<property name="databaseManager" ref="databaseManager"></property>
-				<property name="deleteMergedSql" value="${delete_merged_routes_sql}"></property>
-				<property name="routedataTable" value="${table_routedata}"></property>
-				<property name="selectIntersectionsSql" value="${select_connected_with_same_typeid_sql}"></property>
-				<property name="updateMergedLengthSql" value="${update_routes_increment_length_sql}"></property>
-				<property name="updateMergedSql" value="${update_merged_route_data_sql}"></property>
-			</bean>
-		</property>
-
-		<property name="routeReducer">
-			<bean class="com.velor.RouteReducer">
-				<property name="databaseManager" ref="databaseManager"></property>
-				<property name="routedataTable" value="${table_routedata}"></property>
-				<property name="routesTable" value="${table_routes}"></property>
-			</bean>
-		</property>
-
-		<property name="routeInterconnectionBuilder">
-			<bean class="com.velor.RouteInterconnectionBuilder">
-				<property name="databaseManager" ref="databaseManager"></property>
-				<property name="edgeCreationSqls">
-					<array>
-						<value>${insert_edges_sql}</value>
-						<value>${insert_reversed_edges_sql}</value>
-						<value>${insert_intersections_sql}</value>
-					</array>
-				</property>
-				<property name="edgesTable" value="${table_edges}"></property>
-				<property name="routedataTable" value="${table_routedata}"></property>
-				<property name="selectEdgesSql" value="${select_edges_sql}"></property>
-			</bean>
-		</property>
-		
-		<property name="systemTable" value="${table_system}"></property>
-	</bean>
 
 	<bean id="databaseManager" class="com.velor.DatabaseManager">
 		<property name="database" ref="database"></property>
@@ -116,87 +73,6 @@
 		</property>
 	</bean>
 
-
-	<bean id="mapperFactory" class="com.velor.json.JsonMapperFactory">
-	</bean>
-
-	<bean id="defaultMapper" scope="prototype" factory-bean="mapperFactory"
-		factory-method="getMapper"></bean>
-
-
-	<bean id="poisMapper" factory-bean="mapperFactory" factory-method="getMapper">
-		<constructor-arg index="0"
-			value="${json_helper_dir}${json_pois}${json_helper_extension}"></constructor-arg>
-		<constructor-arg index="1">
-			<bean class="com.velor.json.impl.PoiMapperHelper">
-				<constructor-arg value="${veloroute_remote_media_url}"></constructor-arg>
-			</bean>
-		</constructor-arg>
-	</bean>
-
-	<bean id="typesMapper" factory-bean="mapperFactory"
-		factory-method="getMapper">
-		<constructor-arg index="0"
-			value="${json_helper_dir}${json_types}${json_helper_extension}"></constructor-arg>
-		<constructor-arg index="1">
-			<bean class="com.velor.json.impl.PoiTypeMapperHelper">
-				<constructor-arg value="${veloroute_remote_media_url}"></constructor-arg>
-			</bean>
-		</constructor-arg>
-	</bean>
-
-	<bean id="routeSectionsMapper" factory-bean="mapperFactory"
-		factory-method="getMapper">
-		<constructor-arg index="0">
-			<null />
-		</constructor-arg>
-		<constructor-arg index="1">
-			<bean class="com.velor.json.impl.RouteSectionsMapperHelper"></bean>
-		</constructor-arg>
-	</bean>
-
-	<bean id="jsonParser" class="com.velor.json.JsonParserHandler">
-		<property name="parsers">
-			<map key-type="java.lang.String" value-type="com.velor.JSONParser">
-				<entry key="${json_cities}">
-					<bean parent="jsonParserBase">
-						<constructor-arg index="1" ref="defaultMapper"></constructor-arg>
-						<constructor-arg index="2" value="${table_cities}"></constructor-arg>
-					</bean>
-				</entry>
-				<entry key="${json_categories}">
-					<bean parent="jsonParserBase">
-						<constructor-arg index="1" ref="defaultMapper"></constructor-arg>
-						<constructor-arg index="2" value="${table_categories}"></constructor-arg>
-					</bean>
-				</entry>
-				<entry key="${json_types}">
-					<bean parent="jsonParserBase">
-						<constructor-arg index="1" ref="typesMapper"></constructor-arg>
-						<constructor-arg index="2" value="${table_types}"></constructor-arg>
-					</bean>
-				</entry>
-				<entry key="${json_pois}">
-					<bean parent="jsonParserBase">
-						<constructor-arg index="1" ref="poisMapper"></constructor-arg>
-						<constructor-arg index="2" value="${table_pois}"></constructor-arg>
-					</bean>
-				</entry>
-				<entry key="${json_routesections}">
-					<bean parent="jsonParserBase">
-						<constructor-arg index="1" ref="routeSectionsMapper"></constructor-arg>
-						<constructor-arg index="2" value="${table_routesections}"></constructor-arg>
-					</bean>
-				</entry>
-				<entry key="${json_routes}">
-					<bean parent="jsonParserBase" class="com.velor.json.impl.RouteJsonParser">
-						<property name="routeDataTable" value="${table_routedata}"></property>
-						<property name="routesTable" value="${table_routes}"></property>
-					</bean>
-				</entry>
-			</map>
-		</property>
-	</bean>
 </beans>
 
 

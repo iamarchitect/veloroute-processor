@@ -8,11 +8,18 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Date;
 
-public class JsonDownloader {
+import com.velor.Preprocessor;
+
+public class JsonDownloader implements Preprocessor {
 
 	private String jsonurls;
 	private String mediaUrl;
 	private String[] jsons;
+	private String destinationFolder;
+
+	public void setDestinationFolder(String destinationFolder) {
+		this.destinationFolder = destinationFolder;
+	}
 
 	public String[] getJsons() {
 		return jsons;
@@ -123,5 +130,10 @@ public class JsonDownloader {
 		System.out.println("downloading finished in "
 				+ (new Date().getTime() - debut) + " milliseconds");
 
+	}
+
+	@Override
+	public void preprocess() {
+		downloadJSons(destinationFolder);
 	}
 }

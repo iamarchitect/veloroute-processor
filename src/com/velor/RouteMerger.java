@@ -7,15 +7,13 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.commons.cli.CommandLine;
-
 import com.velor.storage.database.Cursor;
 
 /**
  * Some routes having same name that should be connected are disconnected.
  * Reconnect them in the database.
  */
-public class RouteMerger implements Preprocessor {
+public class RouteMerger extends AbstractPreprocessor {
 	private DatabaseManager databaseManager;
 
 	// select the routes and the geo points from route data where the geo points
@@ -175,7 +173,7 @@ public class RouteMerger implements Preprocessor {
 	}
 
 	@Override
-	public void preprocess(CommandLine cmd) {
+	public void preprocess() {
 		mergeRoutes();
 	}
 

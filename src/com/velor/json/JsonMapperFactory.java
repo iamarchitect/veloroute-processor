@@ -6,11 +6,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import android.content.ContentValues;
+
 import com.velor.json.JsonMapperFactory.JsonMapperHelper;
 import com.velor.storage.mapper.Mapper;
 import com.velor.storage.mapper.MapperFactory;
-
-import android.content.ContentValues;
 
 public class JsonMapperFactory
 		extends

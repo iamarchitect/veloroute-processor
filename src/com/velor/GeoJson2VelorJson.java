@@ -190,4 +190,5 @@ public class GeoJson2VelorJson extends AbstractJsonParser {
 		reader.endObject();
 		return value;
 	}
+
 }

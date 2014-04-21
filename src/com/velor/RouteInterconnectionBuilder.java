@@ -5,16 +5,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.cli.CommandLine;
+import android.content.ContentValues;
 
 import com.velor.algorithms.geodata.GeoUtils;
+import com.velor.map.vo.RouteConnection;
+import com.velor.map.vo.RouteConnectionPoint;
 import com.velor.storage.database.Cursor;
 import com.velor.storage.mapper.VOMapper;
 import com.velor.storage.mapper.VOMapperFactory;
-import com.velor.storage.vo.RouteConnection;
-import com.velor.storage.vo.RouteConnectionPoint;
-
-import android.content.ContentValues;
 
 /**
  * Create a grph of routes represented by RouteConnection between tow
@@ -23,7 +21,7 @@ import android.content.ContentValues;
  * @author glenn-eric
  * 
  */
-public class RouteInterconnectionBuilder implements Preprocessor {
+public class RouteInterconnectionBuilder extends AbstractPreprocessor {
 	private DatabaseManager databaseManager;
 
 	// insert statements
@@ -167,14 +165,15 @@ public class RouteInterconnectionBuilder implements Preprocessor {
 		}
 
 		for (RouteConnection conn : visited) {
-			updateEdgeWeight(conn.src.getRouteId(), conn.src.getOrdinality(),
-					conn.dst.getRouteId(), conn.dst.getOrdinality(),
-					conn.distance);
+			updateEdgeWeight(conn.getSrc().getRouteId(), conn.getSrc()
+					.getOrdinality(), conn.getDst().getRouteId(), conn.getDst()
+					.getOrdinality(), conn.distance);
 		}
 	}
 
 	@Override
-	public void preprocess(CommandLine cmd) {
+	public void preprocess() {
 		createEdges();
 	}
+
 }

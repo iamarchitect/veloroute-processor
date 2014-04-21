@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+
+	<bean id="routeDao" class="com.velor.map.dao.impl.RouteDaoImpl">
+		<constructor-arg ref="database"></constructor-arg>
+		<property name="language" value="fr"></property>
+		<property name="queryForAllSql" value="${select_all_routes_sql}"></property>
+		<property name="selectRouteByBoundsSql" value="${select_route_by_bounds_sql}"></property>
+		<property name="selectRouteByIdSql" value="${select_route_by_id_sql}"></property>
+		<property name="selectRouteCoordSql" value="${select_route_coord_sql}"></property>
+		<property name="selectRouteIdsSql" value="${select_route_ids_sql}"></property>
+	</bean>
+
+	<bean id="routeProvider" class="com.velor.map.provider.route.RouteProviderImpl">
+		<constructor-arg index="0" ref="routeDao"></constructor-arg>
+		<constructor-arg index="1">
+			<null />
+		</constructor-arg>
+	</bean>
+
+	<bean id="tileKeyGenerator" class="com.velor.map.storage.tile.TileKeyGeneratorImpl"></bean>
+
+	<bean id="fileTileProvider" class="com.velor.map.provider.tile.FileTileProviderImpl">
+		<constructor-arg index="0" value="${veloroute_tile_width}"></constructor-arg>
+		<constructor-arg index="1" value="${veloroute_tile_width}"></constructor-arg>
+		<constructor-arg index="2" ref="tileKeyGenerator"></constructor-arg>
+		<constructor-arg index="3" ref="tileKeyGenerator"></constructor-arg>
+	</bean>
+
+	<bean id="remoteTileProvider" class="com.velor.map.provider.tile.RemoteTileProviderImpl"
+		abstract="true">
+		<constructor-arg index="0" value="${veloroute_tile_width}"></constructor-arg>
+		<constructor-arg index="1" value="${veloroute_tile_width}"></constructor-arg>
+		<constructor-arg index="2" value="${veloroute_remote_tile_url}"></constructor-arg>
+	</bean>
+
+	<bean id="tileProvider" class="com.velor.map.provider.tile.CachingTileProvider">
+		<constructor-arg index="0">
+			<bean class="com.velor.map.provider.tile.ChainedTileProvider">
+				<property name="providers">
+					<list>
+						<bean parent="remoteTileProvider">
+							<constructor-arg index="2"
+								value="${veloroute_remote_tile_url}"></constructor-arg>
+						</bean>
+						<bean parent="remoteTileProvider">
+							<constructor-arg index="2"
+								value="${veloroute_remote_tile_alternative_url}"></constructor-arg>
+						</bean>
+					</list>
+				</property>
+			</bean>
+
+		</constructor-arg>
+		<constructor-arg index="1" ref="fileTileProvider"></constructor-arg>
+		<constructor-arg index="2">
+			<null />
+		</constructor-arg>
+		<constructor-arg index="3" ref="fileTileProvider"></constructor-arg>
+	</bean>
+</beans>

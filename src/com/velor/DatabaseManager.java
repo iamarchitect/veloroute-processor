@@ -1,9 +1,9 @@
 package com.velor;
 
-import com.velor.storage.database.Cursor;
-
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
+
+import com.velor.storage.database.Cursor;
 
 public class DatabaseManager {
 	protected String[] createSql;

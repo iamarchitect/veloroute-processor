@@ -4,12 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.cli.CommandLine;
-
-import com.velor.algorithms.polyline.VertexReducer;
-import com.velor.storage.database.Cursor;
-
 import android.content.ContentValues;
+
+import com.velor.algorithms.polyline.VertexReducerUtils;
+import com.velor.storage.database.Cursor;
 
 /**
  * Reduces the vertex of route polylines for each zoom levels from level 5 to
@@ -18,7 +16,7 @@ import android.content.ContentValues;
  * @author glenn-eric
  * 
  */
-public class RouteReducer implements Preprocessor {
+public class RouteReducer extends AbstractPreprocessor {
 	private static final int MIN_ZOOM = 5;
 	public static final String DB_MIN_ZOOM = "min_zoom";
 	public static final String DB_MAX_ZOOM = "max_zoom";
@@ -123,8 +121,9 @@ public class RouteReducer implements Preprocessor {
 			// seek for minimum zooms
 			for (int zoom = 16; zoom >= MIN_ZOOM; zoom--) {
 				double tolerance = toleranceForZoom(zoom);
-				VertexReducer.reumannWitkam(data.toArray(new double[][] {}),
-						tolerance, zoom, minZooms);
+				VertexReducerUtils.reumannWitkam(
+						data.toArray(new double[][] {}), tolerance, zoom,
+						minZooms);
 			}
 
 			minZooms[0] = MIN_ZOOM;
@@ -139,7 +138,7 @@ public class RouteReducer implements Preprocessor {
 	}
 
 	@Override
-	public void preprocess(CommandLine cmd) {
+	public void preprocess() {
 		reduceVertices();
 	}
 }
