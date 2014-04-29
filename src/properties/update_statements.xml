@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+	<entry key="insert_or_replace_poiprefs_sql">
+		INSERT OR REPLACE 
+		INTO ${table_poipreferences} 
+			(poi_id,details,favorite,rating)
+		VALUES (?1,?2,?3,?4);
+	</entry>
+	
+</properties>

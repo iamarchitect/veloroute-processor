@@ -40,6 +40,7 @@
         	${table_pois}.street as street,
         	${table_pois}.street_no as street_no, 
         	${table_pois}.description_#{lang} as description,
+        	${table_pois}.rating as rating,
         	${table_cities}.name as city
         FROM 
         	${table_pois}
@@ -127,6 +128,9 @@
 			${table_pois}.longitude &lt;= CAST(? AS REAL);
     </entry>
     
+    <entry key="update_poi_rating_sql">
+    	UPDATE ${table_pois} SET rating=?2 WHERE id=?1;
+    </entry>
     <!-- =========== Point of interests types =========== -->
     <entry key="select_all_poitypes_sql">
         SELECT 	
@@ -156,7 +160,7 @@
        		${table_types}.id = ?;
     </entry>
     
-   <!-- =========== Point of interests categories=========== -->
+   <!-- =========== Point of interests categories =========== -->
     <entry key="select_all_poitypecats_sql">
 		SELECT
 			id,
@@ -164,4 +168,13 @@
 		FROM ${table_categories};
     </entry>    
     
+   <!-- =========== Point of interests preferences =========== -->
+    <entry key="select_all_poi_preferences_sql">
+		SELECT
+			poi_id,
+			rating,
+			details,
+			favorite
+		FROM ${table_poipreferences};
+    </entry>  
 </properties>

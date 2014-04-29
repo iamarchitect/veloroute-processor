@@ -197,7 +197,7 @@ public class RouteRenderer extends AbstractPreprocessor {
 		for (int i = 0, j = 0; i < n; i++) {
 
 			if (zoom >= route.minZoom[i] && zoom <= route.maxZoom[i]) {
-				Point p = projection.toPoint(new LatLng(route.data[i]), zoom);
+				Point p = projection.toTile(new LatLng(route.data[i]), zoom);
 				xy.add(p);
 				tiles.add(new Point((int) xy.get(j).x, (int) xy.get(j).y));
 				j++;

@@ -45,6 +45,7 @@
         	street_no INT,
         	description_FR TEXT,
         	description_EN TEXT,
+        	rating FLOAT,
         	FOREIGN KEY(type_id) REFERENCES ${table_types}(id),
         	FOREIGN KEY(city_id) REFERENCES ${table_cities}(id)
         );
@@ -109,4 +110,14 @@
         	size INT
         );
 	</entry>
+	
+    <entry key="create_poi_preferences_sql">        
+        CREATE TABLE IF NOT EXISTS ${table_poipreferences} 
+        (
+        	poi_id INTEGER PRIMARY KEY,
+        	details TEXT,
+        	favorite INTEGER,
+        	rating FLOAT
+        );
+	</entry>	
 </properties>

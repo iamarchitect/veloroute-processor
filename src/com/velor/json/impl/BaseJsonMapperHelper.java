@@ -3,8 +3,10 @@ package com.velor.json.impl;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 
 import com.velor.json.JsonMapperFactory.JsonMapperHelper;
 
@@ -80,7 +82,12 @@ public abstract class BaseJsonMapperHelper implements JsonMapperHelper {
 			}
 
 			else {
-				String name = (String) value;
+				String name = "";
+				try {
+					name = URLEncoder.encode(value.toString(), "UTF-8");
+				} catch (UnsupportedEncodingException e) {
+					e.printStackTrace();
+				}
 				url += name;
 				value = getBytes(url);
 			}

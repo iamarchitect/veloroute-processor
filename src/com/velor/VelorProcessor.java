@@ -59,6 +59,7 @@ public class VelorProcessor {
 		options.addOption("nod", false, "bypass the download process");
 		options.addOption("noi", false, "bypass the import process");
 		options.addOption("nor", false, "bypass the route process");
+		options.addOption("not", false, "bypass the tile process");
 		options.addOption("dmpsql", true,"dump all sql statements into the specified folder");
 		options.addOption("help", false, "display this help");
 		//@formatter:on
