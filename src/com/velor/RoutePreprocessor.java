@@ -56,8 +56,8 @@ public class RoutePreprocessor {
 		// FIXME not working properly, some unconnected routes still stays
 		// reversed.
 		// reorderVertices();
-		System.out.println("Merging exploded routes");
-		routeMerger.mergeRoutes();
+		// System.out.println("Merging exploded routes");
+		// routeMerger.mergeRoutes();
 		System.out.println("Reducing vertex");
 		routeReducer.reduceVertices();
 		System.out.println("Creating eges");

@@ -120,12 +120,13 @@ public class GeoJson2VelorJson extends AbstractJsonParser {
 			reader.beginObject();
 			String name = "";
 			String value = "";
-
+			double[][] coords = null;
 			while (reader.hasNext()) {
 				name = reader.nextName();
 
 				if ("geometry".equals(name)) {
-					s.lines = new double[][][] { processCoordinates(reader) };
+					coords = processCoordinates(reader);
+					s.lines = new double[][][] { coords };
 				} else if ("properties".equals(name)) {
 					s.name = processPorperties(reader);
 				} else {
@@ -135,7 +136,9 @@ public class GeoJson2VelorJson extends AbstractJsonParser {
 			}
 
 			reader.endObject();
-			streets.add(s);
+			if (coords != null) {
+				streets.add(s);
+			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -146,10 +149,11 @@ public class GeoJson2VelorJson extends AbstractJsonParser {
 		reader.beginObject();
 
 		List<double[]> coordinates = new ArrayList<>();
+		boolean isLineString = false;
 		while (reader.hasNext()) {
 			String name = reader.nextName();
 
-			if ("coordinates".equals(name)) {
+			if ("coordinates".equals(name) && isLineString) {
 				reader.beginArray();// coordinates
 
 				while (reader.hasNext()) {
@@ -164,13 +168,21 @@ public class GeoJson2VelorJson extends AbstractJsonParser {
 				reader.endArray(); // end array
 			} else {
 				String value = reader.nextString();
-				System.out.println("skipping " + name + " : " + value);
+				if ("type".equals(name)) {
+					isLineString = "LineString".equals(value);
+					if (!isLineString) {
+						while (reader.hasNext()) {
+							reader.skipValue();
+						}
+					}
+				}
 			}
 		}
 
 		reader.endObject();
 
-		return coordinates.toArray(new double[][] {});
+		return coordinates.isEmpty() ? null : coordinates
+				.toArray(new double[][] {});
 	}
 
 	String processPorperties(JsonReader reader) throws Exception {
