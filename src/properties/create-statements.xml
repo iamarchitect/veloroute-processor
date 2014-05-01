@@ -105,10 +105,11 @@
         CREATE TABLE ${table_tiles} 
         (
         	id TEXT PRIMARY KEY,
-        	data CONTENT BLOB,
-        	hash TEXT,
-        	size INT
+        	url TEXT,
+        	file TEXT,
+        	hash TEXT
         );
+        CREATE INDEX idx_tiles ON  ${table_tiles} (hash);		        
 	</entry>
 	
     <entry key="create_poi_preferences_sql">        

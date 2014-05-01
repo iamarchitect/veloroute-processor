@@ -54,7 +54,14 @@
 	</entry>    
 	
 	<entry key="select_all_nodes_sql">
-		SELECT DISTINCT first_id,first_ord
-		FROM ${table_edges};
+		SELECT DISTINCT 
+			${table_edges}.first_id AS first_id,
+			${table_edges}.first_ord AS first_ord,
+			${table_routes}.type_id AS routetype_id
+		FROM 
+			${table_edges},
+			${table_routes}
+		WHERE
+			${table_edges}.first_id=${table_routes}.id;
 	</entry>
 </properties>

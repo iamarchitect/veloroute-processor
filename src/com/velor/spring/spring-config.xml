@@ -18,6 +18,7 @@
 				<value>properties/select-routegraph-statements.xml</value>
 				<value>properties/select-poi-statements.xml</value>
 				<value>properties/system-statements.xml</value>
+				<value>properties/select-tile-statements.xml</value>
 			</list>
 		</property>
 		<property name="ignoreUnresolvablePlaceholders" value="false"></property>
@@ -32,6 +33,7 @@
 		<property name="sqlDumper" ref="sqlDumper"></property>
 		<property name="routeRenderer" ref="routeRenderer"></property>
 		<property name="databaseName" value="${database}"></property>
+		<property name="tileListProcessor" ref="tileListPreprocessor"></property>
 	</bean>
 
 	<bean id="projection" class="com.velor.algorithms.geodata.SphericalMercator"></bean>

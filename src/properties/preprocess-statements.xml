@@ -301,4 +301,25 @@
 			);	       
    </entry>
            
+   <entry key="select_same_tiles_sql">
+   		SELECT hash 
+   		FROM tiles 
+   		GROUP BY hash 
+   		HAVING COUNT(hash)&gt;=2;
+   </entry>
+   
+   <entry key="update_same_tiles_sql">
+   		UPDATE tiles 
+   		SET url=(
+   			SELECT url 
+   			FROM tiles 
+   			WHERE hash=?1 LIMIT 1
+   			),
+   			file=(
+   			SELECT id
+   			FROM tiles 
+   			WHERE hash=?1 LIMIT 1   			
+   			)
+   		WHERE hash=?1;
+   </entry>
 </properties>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+ 	<entry key="select_tile_url_sql">
+        SELECT
+        	url  	
+        FROM 
+        	${table_tiles}
+		WHERE id=?1;
+    </entry>
+     	
+    <entry key="select_tile_hash_sql">
+        SELECT
+        	hash  	
+        FROM 
+        	${table_tiles};
+        WHERE id=?1;
+    </entry>
+     	
+    <entry key="select_tile_file_sql">
+		SELECT CASE 
+			WHEN file IS NULL 
+				THEN id 
+				ELSE file 
+			END
+		FROM ${table_tiles}
+		WHERE id=?1;
+    </entry>    
+</properties>

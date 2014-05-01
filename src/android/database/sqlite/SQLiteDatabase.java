@@ -217,7 +217,7 @@ public final class SQLiteDatabase implements Database {
 
 	public long insert(String table, Object object/* ignored */, ContentValues row) {
 
-		String sql = "INSERT INTO " + table + "(";
+		String sql = "INSERT OR REPLACE INTO " + table + "(";
 
 		List<String> columns = new ArrayList<String>();
 

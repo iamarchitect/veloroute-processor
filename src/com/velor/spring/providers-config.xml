@@ -28,7 +28,6 @@
 		<constructor-arg index="0" value="${veloroute_tile_width}"></constructor-arg>
 		<constructor-arg index="1" value="${veloroute_tile_width}"></constructor-arg>
 		<constructor-arg index="2" ref="tileKeyGenerator"></constructor-arg>
-		<constructor-arg index="3" ref="tileKeyGenerator"></constructor-arg>
 	</bean>
 
 	<bean id="remoteTileProvider" class="com.velor.map.provider.tile.RemoteTileProviderImpl"

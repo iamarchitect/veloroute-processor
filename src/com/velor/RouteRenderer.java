@@ -13,7 +13,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -91,58 +90,12 @@ public class RouteRenderer extends AbstractPreprocessor {
 		this.routeWidth = routeWidth;
 	}
 
-	private class PR {
-		long start = 0;
-		double total = 0;
-		int pcent = 0;
-		int current = 0;
-		int pcent_ = 0;
-
-		public PR() {
-			super();
-			start = new Date().getTime();
-		}
-
-		void update() {
-			pcent = (int) (current / total * 100);
-
-			if (pcent != pcent_) {
-				// long time = new Date().getTime();
-				// if (time - start > 2000) {
-				if (pcent % 10 == 0) {
-					System.out.print(pcent + "%");
-					// start = time;
-				} else {
-					System.out.print(".");
-				}
-			}
-			pcent_ = pcent;
-			current++;
-		}
-
-		void update(int n) {
-			current += n;
-			pcent = (int) (current / total * 100);
-			long time = new Date().getTime();
-
-			if (pcent != pcent_ || time - start > 1000) {
-
-				System.out.println(pcent + "% done");
-				start = time;
-
-			} else {
-				System.out.print(".");
-			}
-			pcent_ = pcent;
-
-		}
-	}
-
 	@Override
 	public void preprocess() {
 
 		tileStorate.setTileDirectory(destination);
-		System.out.println("Rendering routes on tiles " + minzoom + "-" + maxzoom);
+		System.out.println("Rendering routes on tiles " + minzoom + "-"
+				+ maxzoom);
 
 		File f = new File(destination);
 		if (f.exists()) {
@@ -154,7 +107,7 @@ public class RouteRenderer extends AbstractPreprocessor {
 		}
 
 		List<Route> list = routeProvider.getRoutes();
-		PR pr = new PR();
+		ProgressReport pr = new ProgressReport();
 
 		// for (int i = minzoom; i <= maxzoom; i++) {
 		// pr.total += Math.pow(2, i) * list.size();
@@ -164,7 +117,7 @@ public class RouteRenderer extends AbstractPreprocessor {
 		pool = Executors.newFixedThreadPool(10);
 
 		for (int zoom = minzoom; zoom <= maxzoom; zoom++) {
-			
+
 			// int ntiles = (int) Math.pow(2, zoom);
 			for (Route route : list) {
 				if (route.getType().getId() >= -1) {
@@ -196,8 +149,8 @@ public class RouteRenderer extends AbstractPreprocessor {
 		}
 	}
 
-	protected int render(final Route route, final int zoom, final PR pr,
-			final Map<String, Object> locks) {
+	protected int render(final Route route, final int zoom,
+			final ProgressReport pr, final Map<String, Object> locks) {
 		int n = route.size();
 		final List<Point> xy = new ArrayList<>();
 

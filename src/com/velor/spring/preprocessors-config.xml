@@ -77,4 +77,14 @@
 		<property name="jsons" value="${veloroute_remote_jsons}"></property>
 		<property name="destinationFolder" value="${cache}"></property>
 	</bean>
+
+	<bean id="tileListPreprocessor" class="com.velor.TileListPreprocessor">
+		<property name="fileListUrl" value="${veloroute_remote_tile_list}"></property>
+		<property name="saveDir" value="${cache}"></property>
+		<property name="databaseManager" ref="databaseManager"></property>
+		<property name="tileTable" value="${table_tiles}"></property>
+		<property name="tileKeyGenerator" ref="tileKeyGenerator"></property>
+		<property name="selectSameTilesSql" value="${select_same_tiles_sql}"></property>
+		<property name="updateSameTilesSql" value="${update_same_tiles_sql}"></property>
+	</bean>
 </beans>

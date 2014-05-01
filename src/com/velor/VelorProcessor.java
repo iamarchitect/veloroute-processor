@@ -21,12 +21,17 @@ public class VelorProcessor {
 	private DatabaseManager databaseManager;
 	private RoutePreprocessor routePreprocessor;
 	private RouteRenderer routeRenderer;
+	private TileListPreprocessor tileListProcessor;
 	private String databaseName;
 
 	private SqlDumperPropertyPlaceholderHelper sqlDumper;
 
 	public void setRoutePreprocessor(RoutePreprocessor routePreprocessor) {
 		this.routePreprocessor = routePreprocessor;
+	}
+
+	public void setTileListProcessor(TileListPreprocessor tileListProcessor) {
+		this.tileListProcessor = tileListProcessor;
 	}
 
 	public void setDownloader(JsonDownloader downloader) {
@@ -60,6 +65,8 @@ public class VelorProcessor {
 		options.addOption("noi", false, "bypass the import process");
 		options.addOption("nor", false, "bypass the route process");
 		options.addOption("not", false, "bypass the tile process");
+		options.addOption("nol", false, "bypass the tile list process");
+
 		options.addOption("dmpsql", true,"dump all sql statements into the specified folder");
 		options.addOption("help", false, "display this help");
 		//@formatter:on
@@ -143,13 +150,17 @@ public class VelorProcessor {
 			if (line.hasOption("dmpsql")) {
 				sqlDumper.preprocess();
 			}
+
+			if (!line.hasOption("nol")) {
+				tileListProcessor.preprocess();
+			}
 			databaseManager.endTransactionSuccessful();
 		} catch (Exception e) {
 			e.printStackTrace();
 			databaseManager.rollback();
 		} finally {
 			databaseManager.close();
-
+			System.out.println();
 			System.out.println("Processing finished in "
 					+ (new Date().getTime() - start) + " milliseconds");
 		}
