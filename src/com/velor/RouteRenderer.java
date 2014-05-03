@@ -30,11 +30,11 @@ import com.velor.algorithms.geodata.LatLng;
 import com.velor.algorithms.geodata.Projection;
 import com.velor.algorithms.spatial.Point;
 import com.velor.map.provider.route.RouteProvider;
-import com.velor.map.provider.tile.Tile;
-import com.velor.map.provider.tile.TileImpl;
 import com.velor.map.provider.tile.TileProvider;
 import com.velor.map.storage.tile.TileStorage;
 import com.velor.map.vo.Route;
+import com.velor.map.vo.Tile;
+import com.velor.map.vo.TileImpl;
 
 public class RouteRenderer extends AbstractPreprocessor {
 

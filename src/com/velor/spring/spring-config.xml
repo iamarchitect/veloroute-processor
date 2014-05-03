@@ -34,6 +34,7 @@
 		<property name="routeRenderer" ref="routeRenderer"></property>
 		<property name="databaseName" value="${database}"></property>
 		<property name="tileListProcessor" ref="tileListPreprocessor"></property>
+		<property name="daoProcessor" ref="daoProcessor"></property>
 	</bean>
 
 	<bean id="projection" class="com.velor.algorithms.geodata.SphericalMercator"></bean>

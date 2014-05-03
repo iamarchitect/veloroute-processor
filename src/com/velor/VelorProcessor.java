@@ -20,6 +20,7 @@ public class VelorProcessor {
 	private Json2DatabaseProcessor jsonProcessor;
 	private DatabaseManager databaseManager;
 	private RoutePreprocessor routePreprocessor;
+	private DaoProcessor daoProcessor;
 	private RouteRenderer routeRenderer;
 	private TileListPreprocessor tileListProcessor;
 	private String databaseName;
@@ -40,6 +41,10 @@ public class VelorProcessor {
 
 	public void setJsonProcessor(Json2DatabaseProcessor jsonProcessor) {
 		this.jsonProcessor = jsonProcessor;
+	}
+
+	public void setDaoProcessor(DaoProcessor daoProcessor) {
+		this.daoProcessor = daoProcessor;
 	}
 
 	public void setDatabaseManager(DatabaseManager databaseManager) {
@@ -66,6 +71,7 @@ public class VelorProcessor {
 		options.addOption("nor", false, "bypass the route process");
 		options.addOption("not", false, "bypass the tile process");
 		options.addOption("nol", false, "bypass the tile list process");
+		options.addOption("noo", false, "bypass the dao sql process");
 
 		options.addOption("dmpsql", true,"dump all sql statements into the specified folder");
 		options.addOption("help", false, "display this help");
@@ -143,6 +149,11 @@ public class VelorProcessor {
 			if (!line.hasOption("nor")) {
 				routePreprocessor.preprocess();
 			}
+
+			if (!line.hasOption("noo")) {
+				daoProcessor.preprocess();
+			}
+
 			if (!line.hasOption("not")) {
 				routeRenderer.preprocess();
 			}

@@ -1,8 +1,5 @@
 package com.velor;
 
-import java.util.Map;
-
-import android.content.ContentValues;
 
 // FIXME build a processor chain instead of protected methods
 public class RoutePreprocessor {
@@ -22,9 +19,6 @@ public class RoutePreprocessor {
 	private RouteMerger routeMerger;
 	private RouteReducer routeReducer;
 	private RouteInterconnectionBuilder routeInterconnectionBuilder;
-	private SqlDumperPropertyPlaceholderHelper sqlDumper;
-	private DatabaseManager databaseManager;
-	private String systemTable;
 
 	public void setRouteMerger(RouteMerger routeMerger) {
 		this.routeMerger = routeMerger;
@@ -34,21 +28,9 @@ public class RoutePreprocessor {
 		this.routeReducer = routeReducer;
 	}
 
-	public void setSqlDumper(SqlDumperPropertyPlaceholderHelper sqlDumper) {
-		this.sqlDumper = sqlDumper;
-	}
-
 	public void setRouteInterconnectionBuilder(
 			RouteInterconnectionBuilder routeInterconnectionBuilder) {
 		this.routeInterconnectionBuilder = routeInterconnectionBuilder;
-	}
-
-	public void setDatabaseManager(DatabaseManager databaseManager) {
-		this.databaseManager = databaseManager;
-	}
-
-	public void setSystemTable(String systemTable) {
-		this.systemTable = systemTable;
 	}
 
 	public void preprocess() {
@@ -63,19 +45,6 @@ public class RoutePreprocessor {
 		System.out.println("Creating eges");
 		routeInterconnectionBuilder.createEdges();
 		System.out.println("Preparing system tables");
-		prepareSystem();
-	}
-
-	protected void prepareSystem() {
-		Map<String, String> propertiesMap = sqlDumper.getPropertiesMap();
-
-		for (String sql : propertiesMap.keySet()) {
-			ContentValues row = new ContentValues();
-			row.put("name", sql);
-			row.put("value", propertiesMap.get(sql));
-			databaseManager.create(systemTable, row);
-		}
-
 	}
 
 	/**

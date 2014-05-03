@@ -29,10 +29,13 @@
 		<property name="destination" value="${tiles}"></property>
 	</bean>
 
-	<bean id="routePreprocessor" class="com.velor.RoutePreprocessor">
+	<bean id="daoProcessor" class="com.velor.DaoProcessor">
 		<property name="sqlDumper" ref="sqlDumper"></property>
 		<property name="databaseManager" ref="databaseManager"></property>
+		<property name="systemTable" value="${table_system}"></property>
+	</bean>
 
+	<bean id="routePreprocessor" class="com.velor.RoutePreprocessor">
 		<property name="routeMerger">
 			<bean class="com.velor.RouteMerger">
 				<property name="databaseManager" ref="databaseManager"></property>
@@ -67,8 +70,6 @@
 				<property name="selectEdgesSql" value="${select_edges_sql}"></property>
 			</bean>
 		</property>
-
-		<property name="systemTable" value="${table_system}"></property>
 	</bean>
 
 	<bean id="jsonDownloader" class="com.velor.json.JsonDownloader">

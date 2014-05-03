@@ -6,15 +6,15 @@
         	url  	
         FROM 
         	${table_tiles}
-		WHERE id=?1;
+		WHERE id=?;
     </entry>
      	
     <entry key="select_tile_hash_sql">
         SELECT
         	hash  	
         FROM 
-        	${table_tiles};
-        WHERE id=?1;
+        	${table_tiles}
+        WHERE id=?;
     </entry>
      	
     <entry key="select_tile_file_sql">
@@ -24,6 +24,25 @@
 				ELSE file 
 			END
 		FROM ${table_tiles}
-		WHERE id=?1;
-    </entry>    
+		WHERE id=?;
+    </entry>  
+    
+    <entry key="select_all_tiles_sql">
+		SELECT 
+			id,
+			CASE 
+			WHEN file IS NULL 
+				THEN id 
+				ELSE file 
+			END AS file,
+			url,
+			hash
+		FROM ${table_tiles};
+    </entry> 
+    
+    
+    <entry key="select_all_keys_sql">
+		SELECT id
+		FROM ${table_tiles};
+    </entry>     
 </properties>
