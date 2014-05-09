@@ -72,6 +72,7 @@ public class VelorProcessor {
 		options.addOption("not", false, "bypass the tile process");
 		options.addOption("nol", false, "bypass the tile list process");
 		options.addOption("noo", false, "bypass the dao sql process");
+		options.addOption("dtiles", false, "download all tiles at the specified folder");
 
 		options.addOption("dmpsql", true,"dump all sql statements into the specified folder");
 		options.addOption("help", false, "display this help");
@@ -137,6 +138,10 @@ public class VelorProcessor {
 			// FIXME use an option handler (map) with the option name as key and
 			// a Preprocessor (the interface) as value. Or pass in the options
 			// to a Preprocessor chain ?
+			if (line.hasOption("dtiles")) {
+				routeRenderer.setOnlyDownloadTiles(true);
+			}
+
 			if (!line.hasOption("nod")) {
 				downloader.preprocess();
 			}
@@ -176,5 +181,4 @@ public class VelorProcessor {
 					+ (new Date().getTime() - start) + " milliseconds");
 		}
 	}
-
 }

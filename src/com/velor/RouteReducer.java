@@ -6,7 +6,10 @@ import java.util.List;
 
 import android.content.ContentValues;
 
+import com.velor.algorithms.geodata.LatLng;
+import com.velor.algorithms.geodata.Projection;
 import com.velor.algorithms.polyline.VertexReducerUtils;
+import com.velor.algorithms.spatial.Point;
 import com.velor.storage.database.Cursor;
 
 /**
@@ -24,6 +27,16 @@ public class RouteReducer extends AbstractPreprocessor {
 	private DatabaseManager databaseManager;
 	private String routesTable;
 	private String routedataTable;
+	private Projection projection;
+	private int tolerance;
+
+	public void setRouteWidth(int routeWidth) {
+		this.tolerance = routeWidth;
+	}
+
+	public void setProjection(Projection projection) {
+		this.projection = projection;
+	}
 
 	public void setDatabaseManager(DatabaseManager databaseManager) {
 		this.databaseManager = databaseManager;
@@ -95,10 +108,9 @@ public class RouteReducer extends AbstractPreprocessor {
 			long id = c.getLong(1);
 			Cursor route = queryRoute(id);
 
-			List<double[]> data = new ArrayList<double[]>();
-
 			int latC = route.getColumnIndex("latitude");
 			int lonC = route.getColumnIndex("longitude");
+			List<double[]> data = new ArrayList<double[]>();
 
 			while (route.moveToNext()) {
 				data.add(new double[] { route.getDouble(latC),
@@ -120,9 +132,15 @@ public class RouteReducer extends AbstractPreprocessor {
 
 			// seek for minimum zooms
 			for (int zoom = 16; zoom >= MIN_ZOOM; zoom--) {
-				double tolerance = toleranceForZoom(zoom);
+				List<double[]> points = new ArrayList<double[]>();
+				for (double[] datum : data) {
+					Point p = projection.toPoint(
+							new LatLng(datum[0], datum[1]), zoom);
+					points.add(new double[] { p.x, p.y });
+				}
+
 				VertexReducerUtils.reumannWitkam(
-						data.toArray(new double[][] {}), tolerance, zoom,
+						points.toArray(new double[][] {}), tolerance, zoom,
 						minZooms);
 			}
 

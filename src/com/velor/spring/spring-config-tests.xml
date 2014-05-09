@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"
+	default-autowire="byType">
+
+	<import resource="spring-config.xml" />
+
+	<bean id="renderCacheRemoteTileProvider" class="com.velor.map.provider.tile.FileTileProviderImpl">
+		<constructor-arg index="0" value="${veloroute_tile_width}"></constructor-arg>
+		<constructor-arg index="1" value="${veloroute_tile_width}"></constructor-arg>
+		<constructor-arg index="2" ref="tileKeyGenerator"></constructor-arg>
+		<property name="tileDirectory" value="${cache}/tiles-cache"></property>
+	</bean>
+
+
+	<bean id="remoteTileProvider" class="com.velor.map.provider.tile.ChainedTileProvider">
+		<property name="providers">
+			<list>
+				<ref bean="renderCacheRemoteTileProvider" />
+				<ref bean="velorRemoteTileProvider" />
+				<ref bean="altRemoteTileProvider" />
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="tileListPreprocessor" class="com.velor.mock.TileListPreprocessorMock">
+		<property name="fileListUrl" value="${veloroute_remote_tile_list}"></property>
+		<property name="saveDir" value="${cache}"></property>
+		<property name="databaseManager" ref="databaseManager"></property>
+		<property name="tileTable" value="${table_tiles}"></property>
+		<property name="tileKeyGenerator" ref="tileKeyGenerator"></property>
+		<property name="selectSameTilesSql" value="${select_same_tiles_sql}"></property>
+		<property name="updateSameTilesSql" value="${update_same_tiles_sql}"></property>
+		<property name="maxZoom" value="${veloroute_maxzoom}"></property>
+		<property name="minZoom" value="${veloroute_minzoom}"></property>
+		<property name="tileCache" value="${tiles}"></property>
+	</bean>	
+</beans>
+
+

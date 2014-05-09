@@ -23,6 +23,7 @@ public class DaoProcessor implements Preprocessor {
 
 	@Override
 	public void preprocess() {
+		System.out.println("Preparing system tables");
 		Map<String, String> propertiesMap = sqlDumper.getPropertiesMap();
 		databaseManager.execSQL("DELETE FROM " + systemTable + ";");
 		for (String sql : propertiesMap.keySet()) {

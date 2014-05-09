@@ -49,6 +49,11 @@ public class RouteRenderer extends AbstractPreprocessor {
 	private int maxzoom = 10;
 	private String destination;
 	private ExecutorService pool;
+	private boolean onlyDownloadTiles;
+
+	public void setOnlyDownloadTiles(boolean onlyDownloadTiles) {
+		this.onlyDownloadTiles = onlyDownloadTiles;
+	}
 
 	public void setDestination(String destination) {
 		this.destination = destination;
@@ -109,16 +114,11 @@ public class RouteRenderer extends AbstractPreprocessor {
 		List<Route> list = routeProvider.getRoutes();
 		ProgressReport pr = new ProgressReport();
 
-		// for (int i = minzoom; i <= maxzoom; i++) {
-		// pr.total += Math.pow(2, i) * list.size();
-		// }
-
 		final Map<String, Object> locks = new HashMap<String, Object>();
 		pool = Executors.newFixedThreadPool(10);
 
 		for (int zoom = minzoom; zoom <= maxzoom; zoom++) {
 
-			// int ntiles = (int) Math.pow(2, zoom);
 			for (Route route : list) {
 				if (route.getType().getId() >= -1) {
 					pr.total += render(route, zoom, pr, locks);
@@ -129,7 +129,6 @@ public class RouteRenderer extends AbstractPreprocessor {
 		try {
 			pool.shutdown();
 			pool.awaitTermination(1, TimeUnit.DAYS);
-			System.out.println("100%");
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
@@ -149,66 +148,148 @@ public class RouteRenderer extends AbstractPreprocessor {
 		}
 	}
 
+	private class Renderer {
+		public Tile render(Tile tile, Route route, List<Point> xy)
+				throws IOException {
+			int n = xy.size();
+			final float frouteAlpha = routeAlpha;
+			final float frouteWidth = routeWidth;
+
+			// hack to smoothly blend out the route when zooming out.
+			// if (zoom == minzoom) {
+			// frouteAlpha /= 8;
+			// routeWidth /= 4;
+			// } else if (zoom == minzoom + 1) {
+			// routeAlpha /= 4;
+			// routeWidth /= 4;
+			// } else if (zoom == minzoom + 2) {
+			// routeAlpha /= 2;
+			// routeWidth /= 2;
+			// }
+
+			if (n == 1 || routeAlpha == 0) {
+				return null;
+			}
+
+			int w = tilePixels;
+			int h = tilePixels;
+
+			int x = tile.getX();
+			int y = tile.getY();
+
+			int[] xPoints = new int[n];
+			int[] yPoints = new int[n];
+			// normalize the points at the tile coordinates
+			for (int i = 0; i < n; i++) {
+				xPoints[i] = (int) ((xy.get(i).x - x) * w);
+				yPoints[i] = (int) ((xy.get(i).y - y) * h);
+			}
+
+			int y0 = yPoints[0];
+			boolean allsamey = true;
+			for (int i : yPoints) {
+				allsamey &= i == y0;
+			}
+
+			boolean allsamex = true;
+			int c0 = xPoints[0];
+			for (int i : xPoints) {
+				allsamex &= i == c0;
+			}
+
+			if (allsamex && allsamey) {
+				return null;
+			}
+
+			BufferedImage img = ImageIO.read(new ByteArrayInputStream(tile
+					.getData()));
+			Graphics2D g = (Graphics2D) img.getGraphics();
+			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP,
+					frouteAlpha));
+
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+					RenderingHints.VALUE_ANTIALIAS_ON);
+			g.setRenderingHint(RenderingHints.KEY_RENDERING,
+					RenderingHints.VALUE_RENDER_QUALITY);
+			g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION,
+					RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+			g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING,
+					RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+			g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS,
+					RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+
+			Color c = new Color(route.getType().getColor());
+			g.setPaint(c);
+
+			// g.setStroke(new CompositeStroke(new BasicStroke(frouteWidth,
+			// BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND),
+			// new BasicStroke(0.5f)));
+
+			g.setStroke(new BasicStroke(frouteWidth + 2, BasicStroke.CAP_BUTT,
+					BasicStroke.JOIN_BEVEL));
+
+			g.drawPolyline(xPoints, yPoints, n);
+
+			g.setPaint(Color.WHITE);
+
+			g.setStroke(new BasicStroke(frouteWidth, BasicStroke.CAP_ROUND,
+					BasicStroke.JOIN_BEVEL));
+			g.drawPolyline(xPoints, yPoints, n);
+
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			ImageIO.write(img, "jpg", bos);
+			bos.close();
+
+			tile = new TileImpl(bos.toByteArray(), w, h);
+
+			return tile;
+		}
+	}
+
 	protected int render(final Route route, final int zoom,
 			final ProgressReport pr, final Map<String, Object> locks) {
 		int n = route.size();
 		final List<Point> xy = new ArrayList<>();
 
-		float routeAlpha = this.routeAlpha;
-		float routeWidth = this.routeWidth;
-
-		if (zoom == minzoom) {
-			routeAlpha /= 8;
-			routeWidth /= 4;
-		} else if (zoom == minzoom + 1) {
-			routeAlpha /= 4;
-			routeWidth /= 4;
-		} else if (zoom == minzoom + 2) {
-			routeAlpha /= 2;
-			routeWidth /= 2;
-		}
-
+		// get all tiles to be rendered for each points of the route
 		Set<Point> tiles = new HashSet<>();
-		for (int i = 0, j = 0; i < n; i++) {
 
+		// add the first point
+		Point p = projection.toTile(new LatLng(route.head()), zoom);
+		xy.add(p);
+		// add the tile to be rendered
+		tiles.add(new Point((int) p.x, (int) p.y));
+
+		for (int i = 1, j = 1; i < n; i++) {
 			if (zoom >= route.minZoom[i] && zoom <= route.maxZoom[i]) {
-				Point p = projection.toTile(new LatLng(route.data[i]), zoom);
+				p = projection.toTile(new LatLng(route.data[i]), zoom);
 				xy.add(p);
-				tiles.add(new Point((int) xy.get(j).x, (int) xy.get(j).y));
+
+				// add all the tiles intersecting the segment from on point to
+				// another
+				for (int x = (int) xy.get(j - 1).x; x <= (int) p.x; x++) {
+					for (int y = (int) xy.get(j - 1).y; y <= (int) p.y; y++) {
+						tiles.add(new Point(x, y));
+					}
+				}
 				j++;
 			}
 		}
 
-		// int ntiles = (int) Math.pow(2, zoom);
-		// pr.update(ntiles-tiles.size());
+		// render the route on all tiles intersecting the route
+		// FIXME clip the route for the tile to be rendered
 		for (final Point tileCoord : tiles) {
-			final float frouteAlpha = routeAlpha;
-			final float frouteWidth = routeWidth;
 
 			pool.execute(new Runnable() {
 
 				@Override
 				public synchronized void run() {
-
-					int w = tilePixels;
-					int h = tilePixels;
 					Tile tile = null;
-					BufferedImage img = null;
-					// int prevX = -1, prevY = -1;
 					int x = -1;
 					int y = -1;
-					Graphics2D g = null;
-
-					int n = xy.size();
-					int[] xPoints = new int[n];
-					int[] yPoints = new int[n];
 
 					x = (int) tileCoord.x;
 					y = (int) tileCoord.y;
-					for (int i = 0; i < n; i++) {
-						xPoints[i] = (int) ((xy.get(i).x - x) * w);
-						yPoints[i] = (int) ((xy.get(i).y - y) * h);
-					}
 
 					try {
 						File file = tileStorate.getStorageInfo().getTileFile(x,
@@ -222,43 +303,14 @@ public class RouteRenderer extends AbstractPreprocessor {
 								locks.put(file.getAbsolutePath(), lock);
 							}
 						}
-
 						synchronized (lock) {
-
 							tile = tileProvider.getTile(x, y, zoom);
-
-							img = ImageIO.read(new ByteArrayInputStream(tile
-									.getData()));
-							g = (Graphics2D) img.getGraphics();
-							g.setComposite(AlphaComposite.getInstance(
-									AlphaComposite.SRC_ATOP, frouteAlpha));
-
-							g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-									RenderingHints.VALUE_ANTIALIAS_ON);
-							g.setRenderingHint(RenderingHints.KEY_RENDERING,
-									RenderingHints.VALUE_RENDER_QUALITY);
-							g.setRenderingHint(
-									RenderingHints.KEY_ALPHA_INTERPOLATION,
-									RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-							g.setRenderingHint(
-									RenderingHints.KEY_COLOR_RENDERING,
-									RenderingHints.VALUE_COLOR_RENDER_QUALITY);
-							g.setRenderingHint(
-									RenderingHints.KEY_FRACTIONALMETRICS,
-									RenderingHints.VALUE_FRACTIONALMETRICS_ON);
-
-							Color c = new Color(route.getType().getColor());
-							g.setPaint(c);
-							g.setStroke(new BasicStroke(frouteWidth,
-									BasicStroke.CAP_ROUND,
-									BasicStroke.JOIN_BEVEL));
-							g.drawPolyline(xPoints, yPoints, n);
-
-							ByteArrayOutputStream bos = new ByteArrayOutputStream();
-							ImageIO.write(img, "jpg", bos);
-							tile = new TileImpl(bos.toByteArray(), w, h);
-							tileStorate.create(tile, zoom, x, y);
-							bos.close();
+							if (!onlyDownloadTiles) {
+								tile = new Renderer().render(tile, route, xy);
+								if (tile != null) {
+									tileStorate.create(tile, zoom, x, y);
+								}
+							}
 							pr.update();
 						}
 					} catch (IOException e) {
@@ -266,8 +318,6 @@ public class RouteRenderer extends AbstractPreprocessor {
 					}
 				}
 			});
-
-			// ntiles--;
 		}
 
 		return tiles.size();

@@ -1,13 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
     <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
- 	<entry key="select_tile_url_sql">
-        SELECT
-        	url  	
-        FROM 
-        	${table_tiles}
-		WHERE id=?;
-    </entry>
      	
     <entry key="select_tile_hash_sql">
         SELECT
@@ -35,7 +28,6 @@
 				THEN id 
 				ELSE file 
 			END AS file,
-			url,
 			hash
 		FROM ${table_tiles};
     </entry> 

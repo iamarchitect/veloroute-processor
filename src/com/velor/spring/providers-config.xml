@@ -30,31 +30,33 @@
 		<constructor-arg index="2" ref="tileKeyGenerator"></constructor-arg>
 	</bean>
 
-	<bean id="remoteTileProvider" class="com.velor.map.provider.tile.RemoteTileProviderImpl"
+	<bean id="remoteTileProviderBase" class="com.velor.map.provider.tile.RemoteTileProviderImpl"
 		abstract="true">
 		<constructor-arg index="0" value="${veloroute_tile_width}"></constructor-arg>
 		<constructor-arg index="1" value="${veloroute_tile_width}"></constructor-arg>
 		<constructor-arg index="2" value="${veloroute_remote_tile_url}"></constructor-arg>
 	</bean>
 
-	<bean id="tileProvider" class="com.velor.map.provider.tile.CachingTileProvider">
-		<constructor-arg index="0">
-			<bean class="com.velor.map.provider.tile.ChainedTileProvider">
-				<property name="providers">
-					<list>
-						<bean parent="remoteTileProvider">
-							<constructor-arg index="2"
-								value="${veloroute_remote_tile_url}"></constructor-arg>
-						</bean>
-						<bean parent="remoteTileProvider">
-							<constructor-arg index="2"
-								value="${veloroute_remote_tile_alternative_url}"></constructor-arg>
-						</bean>
-					</list>
-				</property>
-			</bean>
+	<bean id="velorRemoteTileProvider" parent="remoteTileProviderBase">
+		<constructor-arg index="2" value="${veloroute_remote_tile_url}"></constructor-arg>
+	</bean>
 
-		</constructor-arg>
+	<bean id="altRemoteTileProvider" parent="remoteTileProviderBase">
+		<constructor-arg index="2"
+			value="${veloroute_remote_tile_alternative_url}"></constructor-arg>
+	</bean>
+
+	<bean id="remoteTileProvider" class="com.velor.map.provider.tile.ChainedTileProvider">
+		<property name="providers">
+			<list>
+				<ref bean="velorRemoteTileProvider" />
+				<ref bean="altRemoteTileProvider" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="tileProvider" class="com.velor.map.provider.tile.CachingTileProvider">
+		<constructor-arg index="0" ref="remoteTileProvider"></constructor-arg>
 		<constructor-arg index="1" ref="fileTileProvider"></constructor-arg>
 		<constructor-arg index="2">
 			<null />

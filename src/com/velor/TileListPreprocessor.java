@@ -17,18 +17,35 @@ import java.util.List;
 
 import android.content.ContentValues;
 
+import com.velor.map.storage.tile.HashDigester;
 import com.velor.map.storage.tile.TileKeyGenerator;
+import com.velor.map.storage.tile.TileKeyGeneratorImpl;
 import com.velor.storage.database.Cursor;
 
 public class TileListPreprocessor implements Preprocessor {
 
-	private String fileListUrl;
-	private String saveDir;
+	protected String fileListUrl;
+	protected String saveDir;
 	private DatabaseManager databaseManager;
 	private String tileTable;
 	private TileKeyGenerator tileKeyGenerator;
 	private String selectSameTilesSql;
 	private String updateSameTilesSql;
+	private int minZoom;
+	private int maxZoom;
+	private String tileCache;
+
+	public void setTileCache(String tileCache) {
+		this.tileCache = tileCache;
+	}
+
+	public void setMinZoom(int minZoom) {
+		this.minZoom = minZoom;
+	}
+
+	public void setMaxZoom(int maxZoom) {
+		this.maxZoom = maxZoom;
+	}
 
 	public void setSelectSameTilesSql(String selectSameTilesSql) {
 		this.selectSameTilesSql = selectSameTilesSql;
@@ -61,7 +78,7 @@ public class TileListPreprocessor implements Preprocessor {
 	@Override
 	public void preprocess() {
 		System.out.println("Downloading tile list file");
-		// downloadFile();
+		downloadFile();
 
 		System.out.println("parsing tile list");
 		parseFile();
@@ -96,6 +113,9 @@ public class TileListPreprocessor implements Preprocessor {
 			String line = null;
 			ProgressReport pr = new ProgressReport();
 			pr.total = new File(fileName).length();
+
+			HashDigester digester = new TileKeyGeneratorImpl();
+
 			while ((line = reader.readLine()) != null) {
 				pr.update(line.length());
 
@@ -106,13 +126,25 @@ public class TileListPreprocessor implements Preprocessor {
 				int x = Integer.parseInt(tokens[0]);
 				int y = Integer.parseInt(tokens[1]);
 				int zoom = Integer.parseInt(tokens[2]);
+
+				if (zoom < minZoom || zoom > maxZoom) {
+					continue;
+				}
+
 				String url = tokens[3];
 				int size = Integer.parseInt(tokens[4]);
 				String hash = tokens[5];
 
 				ContentValues row = new ContentValues();
 				row.put("id", tileKeyGenerator.tileKey(zoom, x, y));
-				row.put("url", url);
+				File file = new File(tileCache, Integer.toString(zoom)
+						+ File.separator + Integer.toString(x) + File.separator
+						+ Integer.toString(y) + ".png");
+
+				if (file.exists()) {
+					byte[] data = Files.readAllBytes(file.toPath());
+					hash = digester.hash(data);
+				} 
 				row.put("hash", hash);
 
 				databaseManager.createOrReplace(tileTable, row);

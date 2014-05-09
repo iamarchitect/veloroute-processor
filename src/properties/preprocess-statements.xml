@@ -310,12 +310,7 @@
    
    <entry key="update_same_tiles_sql">
    		UPDATE tiles 
-   		SET url=(
-   			SELECT url 
-   			FROM tiles 
-   			WHERE hash=?1 LIMIT 1
-   			),
-   			file=(
+   		SET file=(
    			SELECT id
    			FROM tiles 
    			WHERE hash=?1 LIMIT 1   			

@@ -52,6 +52,8 @@
 				<property name="databaseManager" ref="databaseManager"></property>
 				<property name="routedataTable" value="${table_routedata}"></property>
 				<property name="routesTable" value="${table_routes}"></property>
+				<property name="projection" ref="projection"></property>
+				<property name="routeWidth" value="${vertex_reducer_tolerance}"></property>
 			</bean>
 		</property>
 
@@ -87,5 +89,8 @@
 		<property name="tileKeyGenerator" ref="tileKeyGenerator"></property>
 		<property name="selectSameTilesSql" value="${select_same_tiles_sql}"></property>
 		<property name="updateSameTilesSql" value="${update_same_tiles_sql}"></property>
+		<property name="maxZoom" value="${veloroute_maxzoom}"></property>
+		<property name="minZoom" value="${veloroute_minzoom}"></property>
+		<property name="tileCache" value="${tiles}"></property>
 	</bean>
 </beans>

@@ -105,7 +105,6 @@
         CREATE TABLE ${table_tiles} 
         (
         	id TEXT PRIMARY KEY,
-        	url TEXT,
         	file TEXT,
         	hash TEXT
         );

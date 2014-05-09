@@ -3,7 +3,7 @@ package com.velor;
 import java.util.Date;
 
 public class ProgressReport {
-	long start = 0;
+	long start = -1;
 	double total = 0;
 	int pcent = 0;
 	int current = 0;
@@ -34,13 +34,21 @@ public class ProgressReport {
 		}
 		pcent_ = pcent;
 		if (pcent >= 100) {
+			System.out.println();
 			System.out.println("finished in " + (new Date().getTime() - start)
 					+ " milliseconds");
 		}
 	}
 
 	protected void displayIndeterminate() {
-		System.out.print(".");
+		if (start == -1) {
+			start = new Date().getTime();
+		}
+
+		if (new Date().getTime() - start > 1000) {
+			start = new Date().getTime();
+			System.out.print(".");
+		}
 	}
 
 	void update(int n) {
