@@ -38,8 +38,7 @@
 	</bean>
 
 	<bean id="projection" class="com.velor.algorithms.geodata.SphericalMercator"></bean>
-	<bean id="dummyContext" class="android.content.Context"></bean>
-	<bean id="database" class="android.database.sqlite.SQLiteDatabase"></bean>
+	<bean id="database" class="com.velor.database.sqlite.SQLiteDatabase"></bean>
 
 
 	<bean id="databaseManager" class="com.velor.DatabaseManager">

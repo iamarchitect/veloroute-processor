@@ -1,4 +1,4 @@
-package android.database.sqlite;
+package com.velor.database.sqlite;
 
 import java.util.ArrayList;
 import java.util.List;

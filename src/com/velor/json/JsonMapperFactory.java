@@ -6,19 +6,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import android.content.ContentValues;
-
 import com.velor.json.JsonMapperFactory.JsonMapperHelper;
 import com.velor.storage.mapper.Mapper;
 import com.velor.storage.mapper.MapperFactory;
 
 public class JsonMapperFactory
 		extends
-		MapperFactory<ContentValues, Map<String, Object>, String, JsonMapperHelper> {
+		MapperFactory<Map<String, Object>, Map<String, Object>, String, JsonMapperHelper> {
 
 	public interface JsonMapperHelper {
-		Object getValue(String key, Map<String, Object> object)
-				throws Exception;
+		Object getValue(String key, Map<String, Object> object);
 
 		boolean puValue(Map<String, Object> map, String key, Object value);
 	}
@@ -49,7 +46,7 @@ public class JsonMapperFactory
 	}
 
 	@Override
-	protected Mapper<ContentValues, Map<String, Object>> createMapper(
+	protected Mapper<Map<String, Object>, Map<String, Object>> createMapper(
 			String mappings) {
 		final Map<String, String> map = getMappings(mappings);
 		JsonMapperImpl mapper = new JsonMapperImpl() {
@@ -63,7 +60,7 @@ public class JsonMapperFactory
 	}
 
 	@Override
-	protected Mapper<ContentValues, Map<String, Object>> createMapper(
+	protected Mapper<Map<String, Object>, Map<String, Object>> createMapper(
 			String mappings, final JsonMapperHelper helper) {
 		final Map<String, String> map = mappings != null ? getMappings(mappings)
 				: new HashMap<String, String>();
@@ -75,8 +72,7 @@ public class JsonMapperFactory
 			}
 
 			@Override
-			protected Object getValue(String key, Map<String, Object> object)
-					throws Exception {
+			protected Object getValue(String key, Map<String, Object> object) {
 				Object result = helper.getValue(key, object);
 				return result != null ? result : super.getValue(key, object);
 			}

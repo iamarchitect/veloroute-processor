@@ -1,8 +1,7 @@
 package com.velor;
 
+import java.util.HashMap;
 import java.util.Map;
-
-import android.content.ContentValues;
 
 public class DaoProcessor implements Preprocessor {
 	private SqlDumperPropertyPlaceholderHelper sqlDumper;
@@ -27,7 +26,7 @@ public class DaoProcessor implements Preprocessor {
 		Map<String, String> propertiesMap = sqlDumper.getPropertiesMap();
 		databaseManager.execSQL("DELETE FROM " + systemTable + ";");
 		for (String sql : propertiesMap.keySet()) {
-			ContentValues row = new ContentValues();
+			Map<String, Object> row = new HashMap<String, Object>();
 			row.put("name", sql);
 			row.put("value", propertiesMap.get(sql));
 			databaseManager.createOrReplace(systemTable, row);

@@ -1,11 +1,11 @@
 package com.velor;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-
-import android.content.ContentValues;
 
 import com.velor.algorithms.geodata.GeoUtils;
 import com.velor.map.vo.RouteConnection;
@@ -85,6 +85,7 @@ public class RouteInterconnectionBuilder extends AbstractPreprocessor {
 				data.add(new double[] { route.getDouble(latC),
 						route.getDouble(lonC) });
 			}
+			route.close();
 			int a = Math.min(srcord, dstord);
 			int b = Math.max(srcord, dstord);
 
@@ -130,7 +131,7 @@ public class RouteInterconnectionBuilder extends AbstractPreprocessor {
 		args[2] = Long.toString(idB);
 		args[3] = Integer.toString(ordB);
 
-		ContentValues values = new ContentValues();
+		Map<String, Object> values = new HashMap<String, Object>();
 		values.put("distance", weight);
 
 		databaseManager.update(edgesTable, values,

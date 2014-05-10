@@ -31,6 +31,10 @@ public abstract class AbstractJsonParser implements JsonParser {
 			throw e;
 		}
 
+		reader.close();
+		reader = null;
+		System.gc();
+
 		return result;
 	}
 

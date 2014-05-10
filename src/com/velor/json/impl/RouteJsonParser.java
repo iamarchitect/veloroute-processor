@@ -1,9 +1,8 @@
 package com.velor.json.impl;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import android.content.ContentValues;
 
 import com.velor.DatabaseManager;
 import com.velor.algorithms.geodata.GeoUtils;
@@ -27,14 +26,14 @@ public class RouteJsonParser extends DefaultJsonParser {
 	}
 
 	public long createRoute(long typeId) {
-		ContentValues row = new ContentValues();
+		Map<String, Object> row = new HashMap<String, Object>();
 		row.put("type_id", typeId);
 		long[] result = databaseManager.create(routesTable, row);
 		return result[0];
 	}
 
 	public int updateRouteLength(long id, double length) {
-		ContentValues row = new ContentValues();
+		Map<String, Object> row = new HashMap<String, Object>();
 		row.put("route_length", length);
 		int result = databaseManager.update(routesTable, row, "id=?",
 				new String[] { Long.toString(id) });
@@ -56,7 +55,7 @@ public class RouteJsonParser extends DefaultJsonParser {
 		List<List<List<Double>>> wowList = (List<List<List<Double>>>) map
 				.get("lines");
 		int m = wowList.size();
-		ContentValues values = new ContentValues();
+		Map<String, Object> values = new HashMap<String, Object>();
 
 		// temporary variables for route length calculation
 		double prevlng = wowList.get(0).get(0).get(0);
@@ -69,6 +68,7 @@ public class RouteJsonParser extends DefaultJsonParser {
 			int n = wowList.get(i).size();
 			double length = 0;
 
+			values.clear();
 			for (int j = 0; j < n; j++) {
 				double lng = wowList.get(i).get(j).get(0);
 				double lat = wowList.get(i).get(j).get(1);
@@ -86,7 +86,7 @@ public class RouteJsonParser extends DefaultJsonParser {
 
 			// update the route with its pre-calculated length
 			updateRouteLength(routeId, length);
-		}
 
+		}
 	}
 }

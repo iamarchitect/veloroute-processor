@@ -26,6 +26,7 @@ public class JsonParserHandler implements JsonParser {
 			if (parser != null) {
 				return parser.parseJSON(f);
 			}
+			System.gc();
 		}
 		// }
 		return false;

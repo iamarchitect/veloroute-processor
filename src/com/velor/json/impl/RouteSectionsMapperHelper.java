@@ -7,8 +7,7 @@ import com.velor.json.JsonMapperFactory.JsonMapperHelper;
 public class RouteSectionsMapperHelper implements JsonMapperHelper {
 
 	@Override
-	public Object getValue(String key, Map<String, Object> object)
-			throws Exception {
+	public Object getValue(String key, Map<String, Object> object) {
 		if ("color".equals(key)) {
 			String color = (String) object.get(key);
 			color = color.replace("#", "");

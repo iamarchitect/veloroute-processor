@@ -1,5 +1,6 @@
 package com.velor;
 
+
 // FIXME build a processor chain instead of protected methods
 public class RoutePreprocessor {
 	// private static final double halfpi = Math.PI / 2.0;
@@ -40,9 +41,12 @@ public class RoutePreprocessor {
 		System.out.println("Merging exploded routes");
 		routeMerger.mergeRoutes();
 		System.out.println("Reducing vertex");
+		System.gc();
 		routeReducer.reduceVertices();
 		System.out.println("Creating eges");
+		System.gc();
 		routeInterconnectionBuilder.createEdges();
+		System.gc();
 	}
 
 	/**

@@ -1,18 +1,17 @@
-package android.database.sqlite;
+package com.velor.database.sqlite;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.Map;
 
 import org.springframework.util.StringUtils;
-
-import android.content.ContentValues;
 
 import com.velor.storage.database.Cursor;
 import com.velor.storage.database.CursorImpl;
@@ -155,7 +154,7 @@ public final class SQLiteDatabase implements Database {
 	}
 
 	public Cursor rawQuery(String sql, String[] selectionArgs) {
-		PreparedStatement stmt = null;
+		final PreparedStatement stmt;
 		Cursor c = null;
 
 		try {
@@ -168,7 +167,21 @@ public final class SQLiteDatabase implements Database {
 				}
 			}
 
-			c = new CursorImpl(stmt.executeQuery());
+			c = new CursorImpl(stmt.executeQuery()) {
+
+				@Override
+				public void close() {
+					super.close();
+					try {
+						if (stmt != null) {
+							stmt.close();
+						}
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
+
+			};
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -176,36 +189,36 @@ public final class SQLiteDatabase implements Database {
 	}
 
 	public long insertOrThrow(String table, String nullColumnHack /* ignored */,
-			ContentValues values) {
+			Map<String, Object> values) {
 		return insert(table, null, values);
 	}
 
 	public long replaceOrThrow(String table, String nullColumnHack,
-			ContentValues initialValues) throws SQLException {
+			Map<String, Object> initialValues) throws SQLException {
 		return insertWithOnConflict(table, nullColumnHack, initialValues,
 				CONFLICT_REPLACE);
 	}
 
 	public long insertWithOnConflict(String table,
-			String nullColumnHack /* ignored */, ContentValues initialValues,
-			int conflictAlgorithm /* ignored */) {
+			String nullColumnHack /* ignored */,
+			Map<String, Object> initialValues, int conflictAlgorithm /* ignored */) {
 		return insert(table, null, initialValues);
 	}
 
-	public int update(String table, ContentValues values, String whereClause,
-			String[] whereArgs) {
+	public int update(String table, Map<String, Object> values,
+			String whereClause, String[] whereArgs) {
 
 		String sql = "UPDATE " + table + " SET ";
 
 		List<String> sets = new ArrayList<String>();
-		for (Entry<String, Object> vs : values.valueSet()) {
-			String set = vs.getKey() + " = ";
-			if (vs.getValue() instanceof String) {
-				set += "'" + vs.getValue() + "'";
+		for (String key : values.keySet()) {
+			String value = key + "=";
+			if (values.get(key) instanceof String) {
+				value += "'" + values.get(key) + "'";
 			} else {
-				set += vs.getValue();
+				value += values.get(key);
 			}
-			sets.add(set);
+			sets.add(value);
 		}
 		sql += StringUtils.collectionToCommaDelimitedString(sets);
 		sql += " WHERE " + whereClause;
@@ -215,14 +228,15 @@ public final class SQLiteDatabase implements Database {
 		return 0;
 	}
 
-	public long insert(String table, Object object/* ignored */, ContentValues row) {
+	public long insert(String table, Object object/* ignored */,
+			Map<String, Object> row) {
 
 		String sql = "INSERT OR REPLACE INTO " + table + "(";
 
 		List<String> columns = new ArrayList<String>();
 
-		for (Entry<String, Object> vs : row.valueSet()) {
-			columns.add(vs.getKey());
+		for (String key : row.keySet()) {
+			columns.add(key);
 		}
 		sql += StringUtils.collectionToCommaDelimitedString(columns)
 				+ ") VALUES(";
@@ -243,6 +257,7 @@ public final class SQLiteDatabase implements Database {
 			if (rs.next()) {
 				result = rs.getLong(1);
 			}
+			ps.close();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -250,11 +265,11 @@ public final class SQLiteDatabase implements Database {
 		return result;
 	}
 
-	protected void setParameters(ContentValues row, PreparedStatement ps)
+	protected void setParameters(Map<String, Object> row, PreparedStatement ps)
 			throws SQLException {
 		int i = 1;
-		for (Entry<String, Object> vs : row.valueSet()) {
-			Object value = vs.getValue();
+		for (String key : row.keySet()) {
+			Object value = row.get(key);
 			if (value instanceof String) {
 				ps.setString(i, value.toString());
 			} else if (value instanceof byte[]) { // this is a blob
@@ -287,7 +302,9 @@ public final class SQLiteDatabase implements Database {
 		// sql = sql.toLowerCase().replace("\n", "").replace("\t", "").trim()
 		// .replaceAll("\\s+{2,}", " ");
 		try {
-			connection.createStatement().executeUpdate(sql);
+			Statement s = connection.createStatement();
+			s.executeUpdate(sql);
+			s.close();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -296,10 +313,12 @@ public final class SQLiteDatabase implements Database {
 	public void execSQL(String sql, String[] args) {
 		// sql = sql.toLowerCase().replace("\n", "").replace("\t", "").trim()
 		// .replaceAll("\\s+{2,}", " ");
+		// System.out.println(sql);
 		try {
 			PreparedStatement ps = connection.prepareStatement(sql);
 			setParameters(args, ps);
 			ps.executeUpdate();
+			ps.close();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}

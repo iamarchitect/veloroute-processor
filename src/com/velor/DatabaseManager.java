@@ -1,8 +1,8 @@
 package com.velor;
 
-import android.content.ContentValues;
-import android.database.sqlite.SQLiteDatabase;
+import java.util.Map;
 
+import com.velor.database.sqlite.SQLiteDatabase;
 import com.velor.storage.database.Cursor;
 
 public class DatabaseManager {
@@ -59,7 +59,7 @@ public class DatabaseManager {
 		}
 	}
 
-	public long[] create(String table, ContentValues... rows) {
+	public long[] create(String table, Map<String, Object>... rows) {
 		if (rows.length > 1) {
 			beginTransaction();
 		}
@@ -67,7 +67,7 @@ public class DatabaseManager {
 		long[] result = new long[rows.length];
 
 		int i = 0;
-		for (ContentValues row : rows) {
+		for (Map<String, Object> row : rows) {
 			result[i] = database.insertOrThrow(table,
 					null /* nullColumnHack */, row);
 			i++;
@@ -80,12 +80,12 @@ public class DatabaseManager {
 		return result;
 	}
 
-	public int update(String table, ContentValues row, String where,
+	public int update(String table, Map<String, Object> row, String where,
 			String... args) {
 		return database.update(table, row, where, args);
 	}
 
-	public long[] createOrReplace(String table, ContentValues... rows) {
+	public long[] createOrReplace(String table, Map<String, Object>... rows) {
 		if (rows.length > 1) {
 			beginTransaction();
 		}
@@ -93,7 +93,7 @@ public class DatabaseManager {
 		long[] result = new long[rows.length];
 		int i = 0;
 
-		for (ContentValues row : rows) {
+		for (Map<String, Object> row : rows) {
 			result[i] = database.insertWithOnConflict(table,
 					null /* nullColumnHack */, row,
 					SQLiteDatabase.CONFLICT_REPLACE);

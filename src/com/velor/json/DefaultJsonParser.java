@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Map;
 
-import android.content.ContentValues;
-
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.velor.DatabaseManager;
@@ -53,7 +51,7 @@ public class DefaultJsonParser extends AbstractJsonParser {
 	}
 
 	protected void handleNextValue(Map<String, Object> map) {
-		ContentValues values = mapper.map(map);
+		Map<String, Object> values = mapper.map(map);
 		databaseManager.create(table, values);
 	}
 

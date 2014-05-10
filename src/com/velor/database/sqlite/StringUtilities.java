@@ -1,4 +1,4 @@
-package android.database.sqlite;
+package com.velor.database.sqlite;
 
 import java.util.HashSet;
 import java.util.Set;

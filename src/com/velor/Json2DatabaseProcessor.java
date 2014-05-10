@@ -46,6 +46,7 @@ public class Json2DatabaseProcessor implements Preprocessor {
 			} else {
 				System.out.println("skipped " + file);
 			}
+			System.gc();
 		}
 
 	}

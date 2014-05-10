@@ -2,9 +2,9 @@ package com.velor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-
-import android.content.ContentValues;
+import java.util.Map;
 
 import com.velor.algorithms.geodata.LatLng;
 import com.velor.algorithms.geodata.Projection;
@@ -86,7 +86,7 @@ public class RouteReducer extends AbstractPreprocessor {
 	}
 
 	public void updateRouteZoom(long id, int[] minZooms, int[] maxZooms) {
-		ContentValues row = new ContentValues();
+		Map<String, Object> row = new HashMap<String, Object>();
 		int n = minZooms.length;
 		for (int i = 0; i < n; i++) {
 			String[] args = { Long.toString(id), Integer.toString(i) };
@@ -116,7 +116,7 @@ public class RouteReducer extends AbstractPreprocessor {
 				data.add(new double[] { route.getDouble(latC),
 						route.getDouble(lonC) });
 			}
-
+			route.close();
 			int m = data.size();
 
 			// pre-calculate the zoom levels for which every vertex is shown

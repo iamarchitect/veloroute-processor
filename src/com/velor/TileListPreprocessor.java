@@ -13,9 +13,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
-
-import android.content.ContentValues;
+import java.util.Map;
 
 import com.velor.map.storage.tile.HashDigester;
 import com.velor.map.storage.tile.TileKeyGenerator;
@@ -97,7 +97,7 @@ public class TileListPreprocessor implements Preprocessor {
 			String hash = c.getString(hashCol);
 			sameHash.add(hash);
 		}
-
+		c.close();
 		for (String hash : sameHash) {
 			databaseManager.execSQL(updateSameTilesSql, new String[] { hash });
 		}
@@ -135,7 +135,7 @@ public class TileListPreprocessor implements Preprocessor {
 				int size = Integer.parseInt(tokens[4]);
 				String hash = tokens[5];
 
-				ContentValues row = new ContentValues();
+				Map<String, Object> row = new HashMap<String, Object>();
 				row.put("id", tileKeyGenerator.tileKey(zoom, x, y));
 				File file = new File(tileCache, Integer.toString(zoom)
 						+ File.separator + Integer.toString(x) + File.separator
@@ -144,7 +144,7 @@ public class TileListPreprocessor implements Preprocessor {
 				if (file.exists()) {
 					byte[] data = Files.readAllBytes(file.toPath());
 					hash = digester.hash(data);
-				} 
+				}
 				row.put("hash", hash);
 
 				databaseManager.createOrReplace(tileTable, row);

@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
@@ -209,10 +210,12 @@ public class RouteRenderer extends AbstractPreprocessor {
 
 			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 					RenderingHints.VALUE_ANTIALIAS_ON);
-			g.setRenderingHint(RenderingHints.KEY_RENDERING,
-					RenderingHints.VALUE_RENDER_QUALITY);
+			
+		
+			
 			g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION,
-					RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+					RenderingHints.VALUE_ALPHA_INTERPOLATION_SPEED);
+			
 			g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING,
 					RenderingHints.VALUE_COLOR_RENDER_QUALITY);
 			g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS,
@@ -278,8 +281,14 @@ public class RouteRenderer extends AbstractPreprocessor {
 
 		// render the route on all tiles intersecting the route
 		// FIXME clip the route for the tile to be rendered
+//		final Semaphore sem = new Semaphore(20);
 		for (final Point tileCoord : tiles) {
-
+//
+//			try {
+//				sem.acquire();
+//			} catch (InterruptedException e1) {
+//				e1.printStackTrace();
+//			}
 			pool.execute(new Runnable() {
 
 				@Override
@@ -313,11 +322,13 @@ public class RouteRenderer extends AbstractPreprocessor {
 							}
 							pr.update();
 						}
+//						sem.release();
 					} catch (IOException e) {
 						throw new RuntimeException(e);
 					}
 				}
 			});
+			
 		}
 
 		return tiles.size();
